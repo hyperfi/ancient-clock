@@ -1,0 +1,1652 @@
+PROJECT: GHATIKA — AN INTERACTIVE LAB FOR ANCIENT INDIAN TIMEKEEPING AND ASTRONOMY
+
+You are building a polished, research-grade educational web application provisionally called:
+
+Ghaṭikā
+Ancient Indian Time & Astronomy Lab
+
+The purpose is NOT to create a generic history website.
+
+It should be an interactive scientific laboratory in which a user can reproduce, understand and test methods used in Indian mathematical astronomy for:
+
+- measuring time,
+- dividing the day into traditional units,
+- operating water clocks,
+- determining time from solar shadows,
+- determining directions and solar noon with a gnomon,
+- estimating solar altitude and related quantities,
+- understanding tithi and lunar/solar angular relationships,
+- reconstructing historical astronomical computations,
+- predicting solar and lunar eclipses using historically documented algorithms,
+- comparing those predictions with modern astronomical calculations,
+- and quantitatively understanding where the historical methods were accurate and where errors accumulated.
+
+The central question of the application is:
+
+«How much astronomy can you do with the Sun, Moon, stars, geometry, arithmetic and carefully calibrated instruments?»
+
+The user must learn by manipulating the instruments and calculations, not by reading walls of text.
+
+---
+
+1. RESEARCH BEFORE IMPLEMENTATION
+
+Do not immediately start building UI.
+
+First create:
+
+"docs/RESEARCH.md"
+
+and perform a serious source review.
+
+Prioritize:
+
+1. primary texts or scholarly translations;
+2. peer-reviewed history-of-science literature;
+3. critical editions;
+4. institutional sources such as INSA;
+5. modern astronomical references for validation.
+
+Do not use random blogs, nationalist claims, social-media posts or unsourced popular articles as scientific authority.
+
+Important starting references include:
+
+- Sūrya Siddhānta, especially the Burgess translation, but check it against modern scholarship where possible.
+  
+  - Chapter 3: direction, place and time
+  - Chapter 4: eclipses, especially lunar eclipses
+  - Chapter 5: parallax in solar eclipses
+  - Chapter 6: projection of eclipses
+  - Chapter 13: astronomical instruments
+  - Chapter 14: modes of reckoning time
+
+- Āryabhaṭīya of Āryabhaṭa
+  
+  - use the INSA critical edition/translation by K. S. Shukla and K. V. Sarma where accessible;
+  - particularly Kālakriyāpāda and Golapāda.
+
+- Bhāskara I's commentary on the Āryabhaṭīya.
+
+- Varāhamihira's Pañcasiddhāntikā.
+
+- Brahmagupta where relevant.
+
+- Bhāskara II where relevant.
+
+- S. R. Sarma:
+  Indian Astronomical and Time-Measuring Instruments
+
+- S. R. Sarma:
+  Measuring Time with Long Syllables: Bhāskara I's Commentary on Āryabhaṭīya, Kālakriyāpāda 2
+
+- R. N. Iyengar, H. S. Sudarshan and Anand Viswanathan:
+  Akṣara the Basic Unit of Time Measure in Ancient India
+
+- Indian Journal of History of Science literature on:
+  
+  - eclipse computation,
+  - eclipse observations,
+  - Indian astronomical instruments,
+  - Aryabhata,
+  - Parameśvara,
+  - historical time measurement.
+
+Use the INSA History of Science catalogue/index to discover additional reliable sources.
+
+---
+
+2. HISTORICAL RIGOUR
+
+This is critical.
+
+Do not make statements like:
+
+"Ancient Indians predicted eclipses to the exact second."
+
+That is historically and scientifically irresponsible unless a specific source and numerical comparison establish it.
+
+Instead make the application investigate:
+
+How accurate was the method under specified assumptions?
+
+Every historical algorithm or instrument must have a provenance status:
+
+DOCUMENTED
+
+Directly stated in a primary text or reliable translation.
+
+SCHOLARLY INTERPRETATION
+
+A reconstruction accepted or discussed in academic literature.
+
+ENGINEERING RECONSTRUCTION
+
+Our numerical implementation of the physical instrument using modern physics.
+
+MODERN COMPARISON
+
+A present-day astronomical result used only as a benchmark.
+
+Display these labels unobtrusively in the UI.
+
+Never silently mix them.
+
+Also distinguish periods.
+
+Do not call every Indian astronomical development "Vedic" or "ancient."
+
+For example, clearly differentiate:
+
+- Vedāṅga Jyotiṣa traditions,
+- classical siddhānta astronomy,
+- Āryabhaṭa,
+- Varāhamihira,
+- Brahmagupta,
+- Bhāskara I,
+- Bhāskara II,
+- Kerala-school developments,
+- later observational astronomy,
+- and the much later Jantar Mantar observatories.
+
+If dating of a text such as the surviving Sūrya Siddhānta is historically disputed or reflects multiple revisions, SAY SO.
+
+Do not assign a simplistic date without qualification.
+
+---
+
+3. CORE APP STRUCTURE
+
+The application should feel like entering a small digital astronomical observatory.
+
+Primary navigation:
+
+Observe
+Measure Time
+Sun & Shadow
+Moon & Calendar
+Predict an Eclipse
+Accuracy Lab
+Sources
+
+Do not build a conventional dashboard with dozens of cards.
+
+The central visual simulation should dominate each screen.
+
+---
+
+4. LANDING EXPERIENCE
+
+The first screen should be exceptionally simple.
+
+Minimal vector scene:
+
+- horizon,
+- rising Sun,
+- small vertical śaṅku/gnomon,
+- its shadow,
+- a water-clock bowl,
+- Moon above,
+- sparse stars.
+
+Main title:
+
+Ghaṭikā
+
+Subtitle:
+
+Measure time. Read the sky. Predict an eclipse.
+
+Primary button:
+
+Enter the Observatory
+
+Secondary:
+
+How did this work?
+
+As the user moves the pointer or device slightly, the Sun/shadow scene can respond with subtle parallax.
+
+No photorealism.
+
+No stock imagery.
+
+Everything should be vector/SVG/CSS/canvas based.
+
+---
+
+5. MODULE: THE INDIAN DAY
+
+Create an interactive circular 24-hour visualisation.
+
+Represent:
+
+60 ghaṭikā / nāḍikā around the circle.
+
+Where applicable show:
+
+1 day = 60 ghaṭikā
+
+1 ghaṭikā ≈ 24 modern minutes
+
+1 ghaṭikā = 60 vināḍī / vighaṭī in the relevant siddhānta convention
+
+1 vināḍī ≈ 24 seconds
+
+1 muhūrta = 1/30 day ≈ 48 minutes = 2 ghaṭikā
+
+BUT:
+
+Do not imply terminology is invariant across every Indian source.
+
+Provide a:
+
+Convention
+
+selector.
+
+Example:
+
+- Siddhānta convention
+- selected historical text
+- later regional/traditional convention
+
+If pala is used as equivalent to vināḍī in a particular source/tradition, show this as a source-specific alias rather than a universal identity.
+
+Include a converter:
+
+Modern time ⇄ Ghaṭikā : Vināḍī
+
+Example visually:
+
+14:37:12
+
+⇄
+
+36 ghaṭikā · 25 vināḍī · ...
+
+depending on the selected reference epoch/day convention.
+
+Explain that different astronomical day conventions existed.
+
+Allow:
+
+- sunrise-reckoned day,
+- midnight reference for modern comparison,
+- relevant historical day-reckoning systems where documented.
+
+---
+
+6. MODULE: THE WATER CLOCK — GHAṬĪYANTRA
+
+This should be one of the signature experiences.
+
+Build a beautiful SVG/vector simulation of a sinking-bowl water clock.
+
+Scene:
+
+A basin filled with water.
+
+A thin copper bowl floats on the surface.
+
+A tiny hole in the bottom allows water to enter.
+
+The bowl gradually fills.
+
+Its freeboard decreases.
+
+Eventually it sinks.
+
+A counter increments:
+
+"1 ghaṭikā"
+
+The user manually or automatically resets the vessel.
+
+Show modern elapsed time alongside historical units.
+
+MODES
+
+Historical Mode
+
+Present historically documented dimensions/description where reliable sources exist.
+
+Do not invent dimensions.
+
+Calibrate Mode
+
+User adjusts:
+
+- bowl radius,
+- bowl depth,
+- mass,
+- hole diameter,
+- water depth,
+- optional simplified environmental parameters.
+
+The target:
+
+Make the vessel sink once every ghaṭikā.
+
+Show:
+
+Target: 24 min 00 s
+
+Measured: 24 min 18 s
+
+Error per ghaṭikā: +18 s
+
+Projected drift after 12 h: ...
+
+Projected drift after 24 h: ...
+
+Make this visually excellent.
+
+Accuracy experiment
+
+Have an Ideal / Realistic switch.
+
+Ideal:
+perfectly calibrated periodic clock.
+
+Realistic:
+allow controlled uncertainty such as:
+
+- hole-radius manufacturing error,
+- water-level variation,
+- temperature/viscosity approximation,
+- surface effects if physically relevant,
+- vessel-shape variation,
+- human reset delay.
+
+Be careful scientifically.
+
+Do not claim all these errors are historically documented unless sources support them.
+
+Label this:
+
+Modern sensitivity experiment
+
+rather than historical fact.
+
+Implement the fluid model at an educational but physically defensible level.
+
+Document all assumptions in:
+
+"docs/WATER_CLOCK_MODEL.md"
+
+---
+
+7. ACOUSTIC TIME CALIBRATION
+
+This is an unusual and beautiful feature and should definitely be included.
+
+Historical literature discusses calibration of short intervals through controlled Sanskrit recitation / heavy syllable counts.
+
+Create:
+
+The Spoken Clock
+
+Visual:
+
+60 minimal dots or glyph strokes arranged around a ring.
+
+As a calibrated verse is recited, each unit advances.
+
+The target interval is approximately one vighaṭī in the relevant historical scheme.
+
+Include the modern experimental result from the scholarly study only after verifying the paper precisely.
+
+Let the user tap:
+
+Simulate 60 recitations
+
+and show distribution of measured times.
+
+If sufficient data are available from the published study, recreate its statistics faithfully.
+
+Possible visualization:
+
+target
+24.00 s
+|
+observed distribution
+
+Explain how this could provide an independent method to check/calibrate a water clock.
+
+This is a superb example of metrology.
+
+---
+
+8. MODULE: ŚAṄKU — THE GNOMON
+
+Create another major interactive instrument.
+
+Full-screen minimal scene:
+
+- level ground,
+- vertical gnomon,
+- Sun,
+- shadow,
+- celestial/horizon indicators.
+
+Controls:
+
+Date
+Latitude
+Longitude
+Time
+
+But initially hide modern time.
+
+The challenge should be:
+
+«Can you infer the time from the shadow?»
+
+Animate the Sun moving through the sky and the shadow moving continuously.
+
+Allow the user to measure:
+
+- gnomon height,
+- shadow length,
+- shadow direction.
+
+Show geometric relationship:
+
+solar altitude
+
+tan(h) = gnomon height / shadow length
+
+Use notation and conventions clearly.
+
+---
+
+9. FINDING NORTH, EAST-WEST AND SOLAR NOON
+
+Implement the historically documented equal-shadow/circle construction associated with the gnomon tradition.
+
+Interactive exercise:
+
+1. place gnomon at centre;
+2. draw a circle;
+3. mark where morning shadow tip crosses the circle;
+4. wait for afternoon crossing;
+5. connect the two points;
+6. derive east-west;
+7. construct north-south;
+8. identify local solar noon.
+
+Animate the geometry as clean vector graphics.
+
+Allow:
+
+Show construction
+
+and
+
+Try yourself
+
+modes.
+
+Compare derived direction against modern true north.
+
+Report angular error.
+
+This should feel like doing an actual experiment.
+
+---
+
+10. DETERMINE LATITUDE FROM THE SUN
+
+Where historically justified, allow an educational experiment using:
+
+- gnomon,
+- noon shadow,
+- solar declination,
+- equinox observation.
+
+At an equinox the simplified relation can be introduced geometrically.
+
+Do not hide assumptions.
+
+The user should see:
+
+measurement
+→ triangle
+→ solar altitude
+→ zenith distance
+→ inferred latitude
+
+Then compare:
+
+Estimated latitude: 28.7°
+
+Actual latitude: 28.61°
+
+Error: +0.09°
+
+The purpose is to demonstrate how geographical information emerges from a stick and a shadow.
+
+---
+
+11. CELESTIAL SPHERE
+
+Create an extremely clean interactive celestial-sphere view.
+
+Not a planetarium clone.
+
+Use elegant vector geometry.
+
+Show only what is needed:
+
+- horizon,
+- zenith,
+- celestial equator,
+- ecliptic,
+- Sun,
+- Moon,
+- lunar nodes,
+- selected nakṣatra reference points where historically appropriate.
+
+Allow rotate/drag.
+
+Toggle:
+
+Geometry
+Labels
+Historical terminology
+Modern terminology
+
+Example:
+
+krānti ↔ declination
+
+where such equivalence is historically and mathematically appropriate.
+
+Do not fabricate one-to-one translations where concepts differ.
+
+---
+
+12. TITHI EXPLORER
+
+Create a visual explanation of tithi.
+
+Top-down Earth-centred schematic:
+
+Earth
+Sun direction
+Moon direction
+
+Display angular elongation.
+
+A tithi corresponds to a 12° increment in the relative longitude of Moon and Sun.
+
+Animate Moon orbiting.
+
+As elongation passes:
+
+0°
+12°
+24°
+...
+360°
+
+advance the tithi.
+
+Let the user scrub time.
+
+Show why a tithi is not simply a fixed 24-hour civil day.
+
+Show:
+
+Current angular separation
+Current tithi
+Time until next boundary
+
+Historical algorithm and modern reference should be separate.
+
+---
+
+13. THE MAIN FEATURE: PREDICT AN ECLIPSE
+
+This is the intellectual centrepiece.
+
+Create:
+
+The Eclipse Workshop
+
+The user chooses:
+
+Solar Eclipse
+Lunar Eclipse
+
+Location
+Date / historical epoch
+
+Then provide two major calculation paths:
+
+HISTORICAL MODEL
+
+A reconstructed algorithm based on a clearly identified historical source.
+
+Example options eventually:
+
+- Āryabhaṭa tradition
+- Sūrya Siddhānta
+- another documented siddhānta method
+
+Do NOT pretend they are identical.
+
+MODERN MODEL
+
+Independent modern astronomical ephemeris.
+
+---
+
+14. HISTORICAL ECLIPSE CALCULATION MUST BE EXPLAINABLE
+
+Do not implement a black box labelled "Aryabhata algorithm."
+
+Break it into visible stages.
+
+For example, according to the actual source being reconstructed:
+
+1. epoch and elapsed days;
+2. mean solar longitude;
+3. mean lunar longitude;
+4. anomaly / equation corrections;
+5. true longitudes;
+6. lunar node;
+7. latitude relative to ecliptic;
+8. conjunction/opposition test;
+9. apparent angular sizes;
+10. Earth's shadow geometry for lunar eclipse;
+11. parallax corrections for solar eclipse;
+12. projected separation;
+13. first contact;
+14. maximum eclipse;
+15. last contact.
+
+This list is provisional.
+
+The actual implementation MUST follow the researched historical algorithm.
+
+If a particular step belongs to the Sūrya Siddhānta but not Āryabhaṭa, do not silently transfer it.
+
+Create:
+
+"src/history/models/"
+
+with separate models.
+
+For example:
+
+"suryaSiddhanta/"
+"aryabhata/"
+
+Every constant must include:
+
+- value,
+- units,
+- provenance/source,
+- verse/chapter/page where possible,
+- interpretation notes.
+
+Never leave unexplained "magic numbers" in source code.
+
+---
+
+15. ECLIPSE GEOMETRY VISUALIZATION
+
+As the historical computation progresses, animate the geometry.
+
+For lunar eclipse:
+
+Sun → Earth → Earth's shadow → Moon
+
+For solar:
+
+Sun → Moon → Earth/observer
+
+Use simple circles, lines and shadow cones.
+
+No cinematic effects.
+
+The mathematics should be visible.
+
+Show terms like:
+
+Angular separation
+Apparent radius
+Relative angular velocity
+Parallax
+Node distance
+Contact condition
+
+Allow:
+
+Step through calculation
+
+The user should be able to understand WHY an eclipse occurs and how someone could calculate its timing without telescopes or computers.
+
+---
+
+16. HISTORICAL VS MODERN RESULT
+
+After calculation show a strong comparison view.
+
+Example:
+
+Historical reconstruction
+
+First contact     14:18
+Maximum           15:31
+Last contact      16:47
+
+Modern reference
+
+First contact     14:24
+Maximum           15:36
+Last contact      16:52
+
+Difference
+
+-6 min
+-5 min
+-5 min
+
+Do not cherry-pick impressive cases.
+
+Provide multiple benchmark eclipses.
+
+The user should be able to move through different dates and see the error change.
+
+Plot:
+
+Prediction error vs year
+
+where scientifically meaningful.
+
+Possible quantities:
+
+- maximum-eclipse timing error,
+- first-contact error,
+- eclipse magnitude error,
+- Sun longitude error,
+- Moon longitude error,
+- node error.
+
+This turns the app from historical storytelling into quantitative science.
+
+---
+
+17. IMPORTANT: ANCIENT ECLIPSE "GROUND TRUTH"
+
+For sufficiently ancient dates, do not treat UTC timing as perfectly known.
+
+Earth's rotation has varied.
+
+Historical eclipse reconstruction therefore involves ΔT = TT − UT uncertainty.
+
+For ancient events display something like:
+
+Modern astronomical geometry
+high confidence
+
+Local civil-time reconstruction
+± historical ΔT uncertainty
+
+Research this carefully.
+
+Do not allow the modern benchmark itself to create false precision.
+
+For recent centuries modern reference can of course be much tighter.
+
+---
+
+18. MODERN ASTRONOMY ENGINE
+
+For modern/reference calculations, investigate:
+
+Astronomy Engine for JavaScript/TypeScript
+
+It provides browser/Node functionality for:
+
+- Sun and Moon coordinates,
+- horizontal coordinates,
+- Moon phases,
+- solar eclipses,
+- lunar eclipses,
+- local eclipse circumstances.
+
+If its precision/time range is sufficient, it is preferred because it keeps the educational application largely client-side.
+
+However:
+
+TEST IT.
+
+Do not assume that a package suitable for modern dates is the correct reference for 500 CE or earlier.
+
+For deep historical validation, if necessary create an optional backend using a suitable high-quality ephemeris such as a JPL DE441-based workflow.
+
+If introducing Python/backend astronomy:
+
+keep it cleanly separated from the educational frontend.
+
+Document:
+
+- ephemeris,
+- supported date range,
+- time scale,
+- ΔT handling,
+- expected precision.
+
+---
+
+19. OBSERVATION → CALCULATION WORKFLOW
+
+One of the most important experiences should connect the instruments.
+
+Create a guided challenge:
+
+CAN YOU PREDICT THE SKY?
+
+Step 1
+Measure elapsed time using the water clock.
+
+Step 2
+Use a gnomon to determine local noon.
+
+Step 3
+Infer solar altitude.
+
+Step 4
+Determine/use the date and location.
+
+Step 5
+Determine solar/lunar astronomical quantities.
+
+Step 6
+Use the historical tables/model.
+
+Step 7
+Predict an eclipse or lunar phase.
+
+Step 8
+Reveal the modern result.
+
+This provides a narrative that connects metrology to astronomy.
+
+---
+
+20. ACCURACY LAB
+
+Create an entire module answering:
+
+How accurate could these methods be?
+
+User can toggle error sources.
+
+Examples:
+
+Water clock:
+± hole size
+± reset delay
+
+Gnomon:
+± 1 mm shadow measurement
+± nonvertical gnomon
+± imperfect ground leveling
+
+Astronomical tables:
+historical rounding
+historical constants
+interpolation
+
+Observational:
+solar limb vs centre
+atmospheric refraction near horizon
+
+Then propagate uncertainty through the calculation.
+
+Use Monte Carlo simulations where helpful.
+
+For example:
+
+1000 simulated observations
+
+Predicted eclipse maximum:
+
+mean error = ...
+68% interval = ...
+
+Separate:
+
+historically attested uncertainty
+
+from
+
+modern hypothetical sensitivity study.
+
+This distinction is essential.
+
+---
+
+21. "THEN VS NOW" MODE
+
+Every major experiment should have a discreet toggle:
+
+Historical
+Modern
+
+For a gnomon:
+
+Historical:
+measured shadow + historical geometry.
+
+Modern:
+computed solar position.
+
+For an eclipse:
+
+Historical:
+siddhānta model.
+
+Modern:
+modern ephemeris.
+
+For time:
+
+Historical:
+ghaṭikā/vināḍī.
+
+Modern:
+HH:MM:SS.
+
+The app becomes an instrument for understanding both systems.
+
+---
+
+22. SOURCES BUILT INTO THE UI
+
+Every major fact needs provenance.
+
+Add a small quotation/source icon.
+
+Opening it should show:
+
+Source
+Author
+Approximate date
+Text
+Chapter / verse / page where available
+Translation used
+Modern scholarship
+Implementation note
+
+Example:
+
+Sūrya Siddhānta
+Chapter 3
+Direction, Place and Time
+
+followed by a SHORT quotation only where copyright permits, otherwise paraphrase.
+
+Do not copy long translated passages.
+
+Add:
+
+What the source actually says
+
+and
+
+What this simulation reconstructs
+
+as two separate fields.
+
+---
+
+23. RESEARCH LEDGER
+
+Maintain:
+
+"src/data/sources.ts"
+
+or an equivalent structured data file.
+
+Example schema conceptually:
+
+id
+title
+author
+period
+sourceType
+bibliographicCitation
+chapter
+verse
+page
+url
+claimSupported
+confidence
+notes
+
+Historical claims used by the app must reference IDs from this registry.
+
+Create:
+
+"docs/CLAIMS_LEDGER.md"
+
+containing:
+
+Claim
+Evidence
+Confidence
+Implementation consequence
+
+Example:
+
+"One nāḍikā equals 1/60 of the day in X source."
+
+SOURCE:
+...
+
+CONFIDENCE:
+High
+
+---
+
+24. VISUAL LANGUAGE
+
+The interface must be:
+
+minimal
+quiet
+precise
+warm
+beautiful
+scientific
+
+DO NOT create stereotypical "ancient India" design.
+
+Avoid:
+
+- excessive temple motifs,
+- glowing mandalas everywhere,
+- fake parchment,
+- fake Sanskrit fonts,
+- gold-on-black luxury aesthetic,
+- ornate borders,
+- stock photographs,
+- excessive gradients,
+- generic glassmorphism,
+- dashboard-card overload.
+
+Instead derive the visual identity from:
+
+- astronomical circles,
+- arcs,
+- gnomon geometry,
+- eclipse discs,
+- water levels,
+- geometric constructions,
+- Indian mathematical diagrams,
+- sparse manuscript-inspired notation.
+
+Suggested palette:
+
+warm ivory background
+near-black charcoal typography
+muted indigo
+earth/saffron accent
+subtle copper accent for instruments
+
+Use colour sparingly.
+
+The astronomical geometry itself should provide the visual richness.
+
+---
+
+25. VECTOR ART
+
+All signature illustrations should be custom SVG/vector art.
+
+Create a reusable visual system.
+
+Components might include:
+
+"Gnomon"
+"Sun"
+"Moon"
+"Earth"
+"WaterBowl"
+"CelestialSphere"
+"Horizon"
+"Shadow"
+"Orbit"
+"Ecliptic"
+"Node"
+"NakshatraMarker"
+"MeasurementArc"
+"AngleMarker"
+"HistoricalInstrument"
+
+Stroke width and geometry must remain consistent.
+
+Prefer SVG over raster imagery.
+
+Animations should be deterministic and geometry-driven.
+
+---
+
+26. MOTION
+
+Use subtle motion extensively where it teaches physics.
+
+Examples:
+
+Sun drifting
+shadow rotating
+water slowly filling bowl
+bowl sinking
+Moon orbiting
+node crossing
+eclipse discs converging
+celestial sphere turning
+
+The motion must communicate the phenomenon.
+
+No pointless bouncing UI.
+
+Respect prefers-reduced-motion.
+
+---
+
+27. TYPOGRAPHY
+
+Use an excellent readable Latin typeface.
+
+Support Devanāgarī/Sanskrit properly when terms or source passages require it.
+
+But the primary interface should remain readable to someone who knows no Sanskrit.
+
+Show:
+
+Ghaṭikā
+घटिका
+
+only where useful.
+
+Do not fill the app with decorative Devanāgarī.
+
+Transliteration should be technically correct.
+
+---
+
+28. CONTENT STYLE
+
+Scientific but accessible.
+
+Bad:
+
+"Ancient Indians had an incredibly advanced understanding of astronomy."
+
+Good:
+
+"By combining measured time, angular motion and eclipse geometry, siddhānta astronomers could calculate when the Sun, Moon and lunar node approached an eclipse configuration."
+
+Never tell users that something is remarkable.
+
+Let the interactive result demonstrate it.
+
+Avoid civilizational boasting.
+
+Avoid civilizational dismissal.
+
+Treat the material as history of quantitative science.
+
+---
+
+29. TECH STACK
+
+Preferred unless repo constraints dictate otherwise:
+
+Next.js
+TypeScript
+React
+Tailwind CSS
+SVG
+Framer Motion only where useful
+D3 only if genuinely needed for plotting/scales
+Astronomy Engine or independently validated astronomical package for modern reference
+
+Avoid unnecessary dependencies.
+
+No Three.js unless a genuinely 3D celestial-sphere view proves substantially better than SVG/canvas.
+
+I prefer the application to remain lightweight.
+
+---
+
+30. NUMERICAL ARCHITECTURE
+
+Separate physics/history from presentation.
+
+For example:
+
+"src/lib/time/"
+traditional time conversion
+
+"src/lib/solar/"
+gnomon and solar geometry
+
+"src/lib/water-clock/"
+water-clock reconstruction
+
+"src/lib/astronomy/"
+modern astronomy
+
+"src/lib/historical-astronomy/"
+historical models
+
+"src/lib/uncertainty/"
+error propagation / Monte Carlo
+
+"src/components/instruments/"
+SVG instruments
+
+"src/components/plots/"
+
+"src/content/"
+
+"src/data/sources/"
+
+Do not bury mathematical calculations inside React components.
+
+All quantitative functions need unit tests.
+
+---
+
+31. TESTS
+
+Create tests for:
+
+Time conversion:
+24 modern hours = 60 ghaṭikā under the chosen convention.
+
+Gnomon:
+known solar-altitude geometry.
+
+East-west construction:
+synthetic test cases.
+
+Tithi:
+known Sun/Moon elongations.
+
+Historical astronomy:
+published worked examples where available.
+
+Modern astronomy:
+known eclipse cases.
+
+Historical-vs-modern:
+regression cases.
+
+Water-clock:
+conservation and monotonicity assumptions.
+
+Do not tune historical constants merely to make the historical answers agree with modern results.
+
+That would invalidate the experiment.
+
+---
+
+32. VALIDATION DATASET
+
+Build:
+
+"data/eclipse-benchmarks.json"
+
+Prefer eclipses for which reliable historical/scholarly information exists.
+
+Fields:
+
+date
+location
+eclipse type
+historical source/model
+historical predicted contacts
+historical observation if available
+modern reconstructed contacts
+ΔT assumption
+uncertainty
+citation
+
+Start small but defensible.
+
+Five strong benchmark events are better than fifty poorly sourced ones.
+
+Later include observational work by astronomers such as Parameśvara where academically appropriate, clearly identifying this as medieval rather than ancient.
+
+---
+
+33. TIMELINE
+
+Include a small visual timeline but keep it secondary.
+
+Potential milestones only after research validation:
+
+Vedāṅga Jyotiṣa
+Āryabhaṭa
+Varāhamihira
+Brahmagupta
+Bhāskara I
+Bhāskara II
+Kerala astronomical tradition
+Parameśvara
+later observational/instrument traditions
+Jantar Mantar as a much later early-modern comparison
+
+The timeline's purpose is to show that "Indian astronomy" evolved for centuries.
+
+Do not flatten everything into one period.
+
+---
+
+34. OPTIONAL LATER MODULE: JANTAR MANTAR
+
+Do NOT mix Jantar Mantar into the ancient modules.
+
+It is much later.
+
+But eventually add a separate:
+
+From hand-held instruments to architecture
+
+module.
+
+Show how the same astronomical geometry can be embodied in very large masonry instruments.
+
+Clearly label the eighteenth-century historical context.
+
+This should be an extension, not MVP.
+
+---
+
+35. FIRST RELEASE / MVP
+
+Do not try to implement every historical astronomical text at once.
+
+A strong first release should contain:
+
+1. Observatory landing page
+2. Traditional time-unit explorer
+3. Functional sinking-bowl water-clock simulation
+4. Water-clock accuracy/calibration experiment
+5. Gnomon simulator
+6. Equal-shadow direction experiment
+7. Solar-time experiment
+8. Tithi visualizer
+9. One carefully reconstructed eclipse algorithm
+10. Modern eclipse comparison
+11. Accuracy/Error Lab
+12. complete Sources/Methodology page
+
+The first historical eclipse implementation should preferably be the model for which we can recover the most complete, defensible algorithm from scholarly translations.
+
+Research first; choose after the literature review.
+
+---
+
+36. UX PRINCIPLE
+
+At all times ask:
+
+Can the user DISCOVER this rather than merely READ it?
+
+For example:
+
+Do not simply write:
+
+"One ghaṭikā is 24 minutes."
+
+Instead:
+
+Run the water clock.
+
+Let it sink.
+
+Increment the counter.
+
+Show:
+
+1 ghaṭikā elapsed
+00:24:00 modern time
+
+Do not simply describe a gnomon.
+
+Let the user drag the Sun and watch the shadow.
+
+Do not simply state how eclipses were calculated.
+
+Let the user move Sun/Moon/node longitudes until eclipse conditions emerge.
+
+---
+
+37. A KEY INTERACTIVE STORY
+
+Implement a guided experience called:
+
+Predict an Eclipse Without a Telescope
+
+It should be perhaps the app's best feature.
+
+The user progresses through:
+
+OBSERVE
+↓
+MEASURE TIME
+↓
+MEASURE THE SUN
+↓
+CALCULATE POSITION
+↓
+TRACK THE MOON
+↓
+CHECK THE NODE
+↓
+CONSTRUCT THE ECLIPSE
+↓
+PREDICT CONTACT
+↓
+COMPARE WITH MODERN ASTRONOMY
+
+At the end show:
+
+Historical prediction error:
+XX minutes
+
+and explain where that error originates.
+
+This is the application's main intellectual payoff.
+
+---
+
+38. RESPONSIVENESS
+
+It must work beautifully on:
+
+desktop
+tablet
+phone
+
+On mobile, the simulations must remain primary.
+
+Do not reduce mobile into stacked explanatory cards.
+
+For geometric diagrams, dynamically adapt SVG viewBox/layout.
+
+Touch interactions must be first class.
+
+---
+
+39. ACCESSIBILITY
+
+Keyboard operable controls.
+
+Good contrast.
+
+ARIA labels.
+
+Reduced-motion support.
+
+No information communicated solely through colour.
+
+Equations should have accessible text representations.
+
+---
+
+40. PERFORMANCE
+
+Aim for excellent Lighthouse scores.
+
+SVG animations should remain smooth.
+
+Do not load giant astronomy datasets unnecessarily.
+
+Lazy-load advanced modules.
+
+Avoid layout shifts.
+
+---
+
+41. DEVELOPMENT PROCESS
+
+Work in phases.
+
+PHASE 0 — RESEARCH
+
+Produce:
+
+"docs/RESEARCH.md"
+"docs/HISTORICAL_SCOPE.md"
+"docs/CLAIMS_LEDGER.md"
+"docs/ECLIPSE_METHODS.md"
+"docs/WATER_CLOCK_MODEL.md"
+"docs/MODERN_REFERENCE.md"
+
+Do not proceed until the factual architecture is coherent.
+
+PHASE 1 — DESIGN SYSTEM
+
+Build:
+
+typography
+palette
+spacing
+SVG primitives
+instrument components
+motion language
+
+Create the landing screen and one working instrument.
+
+PHASE 2 — TIME LAB
+
+Implement:
+traditional units
+conversions
+water clock
+calibration
+error experiment
+
+PHASE 3 — SOLAR LAB
+
+Implement:
+gnomon
+shadow geometry
+direction construction
+solar noon
+latitude experiment
+
+PHASE 4 — LUNAR/CALENDAR LAB
+
+Implement:
+Sun-Moon geometry
+tithi
+lunar nodes
+
+PHASE 5 — ECLIPSE LAB
+
+Implement:
+historical algorithm
+step-by-step visualisation
+modern benchmark
+error comparison
+
+PHASE 6 — VALIDATION
+
+Unit tests
+historical worked examples
+modern astronomical comparisons
+source audit
+mobile UX
+performance
+accessibility
+
+---
+
+42. DO NOT FAKE COMPLETENESS
+
+If the literature does not permit reconstruction of a historical step with confidence:
+
+do not invent it.
+
+Mark it:
+
+Reconstruction uncertain
+
+and explain the assumption.
+
+If a popular historical claim cannot be supported:
+
+exclude it.
+
+This application will be more impressive if it is demonstrably trustworthy.
+
+---
+
+43. README
+
+Create an excellent README containing:
+
+Purpose
+Screenshots
+Features
+Research philosophy
+Historical sources
+Scientific methodology
+Accuracy limitations
+Architecture
+Running locally
+Testing
+Source provenance
+Licensing
+
+State prominently:
+
+This project distinguishes historical textual algorithms, scholarly reconstruction and modern astronomical reference calculations.
+
+---
+
+44. FINAL STANDARD
+
+The application should eventually allow me to hand someone a phone and say:
+
+«"Here is a bowl of water and a stick. Try to measure time, determine where the Sun is, understand how the Moon moves, and then see how a mathematical astronomer could use those measurements and tables to predict an eclipse."»
+
+The user should come away understanding the actual chain:
+
+observation → measurement → units → geometry → mathematical model → astronomical prediction → error
+
+That chain is more important than decorative historical information.
+
+Build it like a scientific interactive exhibit, not a history blog.
+
