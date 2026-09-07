@@ -16,30 +16,36 @@ export function ModuleLayout({
   className = '',
 }: ModuleLayoutProps) {
   return (
-    <div className={`flex flex-col h-screen max-h-screen bg-[#FEFDF5] text-[#1C1917] overflow-hidden ${className}`}>
+    <div
+      className={`flex flex-col min-h-[calc(100vh-3.5rem)] bg-[#FEFDF5] dark:bg-[#0C0A09] text-[#1C1917] dark:text-[#F5F5F4] transition-colors ${className}`}
+    >
       {/* Header */}
-      <header className="flex-none px-4 py-3 border-b border-stone-200 bg-[#FEFDF5] z-10 shadow-sm flex items-center justify-between">
+      <header className="flex-none px-4 sm:px-6 py-4 border-b border-stone-200 dark:border-stone-800 bg-[#FEFDF5]/95 dark:bg-[#0C0A09]/95 sticky top-14 z-20 backdrop-blur flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-[#1C1917]">{title}</h1>
-          {subtitle && <p className="text-sm text-stone-500 mt-0.5">{subtitle}</p>}
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#1C1917] dark:text-[#F5F5F4]">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
+              {subtitle}
+            </p>
+          )}
         </div>
       </header>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
+      <div className="flex flex-1 flex-col md:flex-row">
         {/* Visualization / Main Area */}
-        <main className="flex-1 relative overflow-auto bg-stone-50 md:bg-transparent">
-          <div className="absolute inset-0">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-stone-50/40 dark:bg-stone-950/30">
+          <div className="w-full h-full max-w-7xl mx-auto">
             {children}
           </div>
         </main>
 
         {/* Controls Panel */}
         {controls && (
-          <aside className="w-full md:w-80 lg:w-96 flex-none border-t md:border-t-0 md:border-l border-stone-200 bg-[#FEFDF5] overflow-y-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:shadow-none z-10 transition-all max-h-[50vh] md:max-h-full">
-            <div className="p-4 md:p-6 space-y-6">
-              {controls}
-            </div>
+          <aside className="w-full md:w-80 lg:w-96 flex-none border-t md:border-t-0 md:border-l border-stone-200 dark:border-stone-800 bg-[#FEFDF5] dark:bg-[#141210] p-4 md:p-6 space-y-6">
+            {controls}
           </aside>
         )}
       </div>

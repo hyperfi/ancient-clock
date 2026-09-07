@@ -1,0 +1,115 @@
+{
+  "metadata": {
+    "description": "Curated benchmark eclipses for validating historical vs modern astronomical computations",
+    "provenance": "MODERN COMPARISON",
+    "deltaT_model": "Stephenson, Morrison, Hohenkerk (2016); Espenak-Meeus (2006)",
+    "notes": "Contact times are for the point of greatest eclipse or specified location. Times in UT unless noted."
+  },
+  "benchmarks": [
+    {
+      "id": "parameshvara-1422-lunar",
+      "date": "1422-06-01",
+      "type": "lunar",
+      "subtype": "total",
+      "description": "Lunar eclipse observed by Parameśvara from Thirunavaya, Kerala",
+      "location": {
+        "name": "Thirunavaya, Kerala",
+        "latitude": 10.87,
+        "longitude": 75.95
+      },
+      "historicalSource": {
+        "observer": "Parameśvara",
+        "text": "Siddhāntadīpikā",
+        "period": "c. 1380-1460 CE",
+        "notes": "Part of Parameśvara's 55-year systematic observation campaign (1393-1448)"
+      },
+      "modernComputed": {
+        "notes": "Modern contact times to be computed using Astronomy Engine with Stephenson et al. ΔT",
+        "deltaT_seconds": null,
+        "deltaT_uncertainty_seconds": 120
+      },
+      "provenance": "scholarly",
+      "citation": "K.V. Sarma, critical editions of Parameśvara's works"
+    },
+    {
+      "id": "1868-08-18-solar",
+      "date": "1868-08-18",
+      "type": "solar",
+      "subtype": "total",
+      "description": "Total solar eclipse visible from Guntur, India. Famous for the discovery of Helium in the solar spectrum.",
+      "location": {
+        "name": "Guntur, Andhra Pradesh",
+        "latitude": 16.31,
+        "longitude": 80.44
+      },
+      "historicalSource": null,
+      "modernComputed": {
+        "notes": "Well-documented modern eclipse. ΔT well-constrained for this era.",
+        "deltaT_seconds": 6.1,
+        "deltaT_uncertainty_seconds": 1
+      },
+      "provenance": "modern",
+      "citation": "NASA Five Millennium Canon of Solar Eclipses (Espenak & Meeus)"
+    },
+    {
+      "id": "1898-01-22-solar",
+      "date": "1898-01-22",
+      "type": "solar",
+      "subtype": "total",
+      "description": "Total solar eclipse visible from central India. Early photographic documentation.",
+      "location": {
+        "name": "Ratnagiri, Maharashtra",
+        "latitude": 16.99,
+        "longitude": 73.30
+      },
+      "historicalSource": null,
+      "modernComputed": {
+        "notes": "Early photographic documentation available.",
+        "deltaT_seconds": -2.9,
+        "deltaT_uncertainty_seconds": 0.5
+      },
+      "provenance": "modern",
+      "citation": "NASA Five Millennium Canon of Solar Eclipses (Espenak & Meeus)"
+    },
+    {
+      "id": "1980-02-16-solar",
+      "date": "1980-02-16",
+      "type": "solar",
+      "subtype": "total",
+      "description": "Total solar eclipse visible across Southern India (Karwar to Puri). Studied by modern Indian astrophysical institutions.",
+      "location": {
+        "name": "Raichur, Karnataka",
+        "latitude": 16.20,
+        "longitude": 77.37
+      },
+      "historicalSource": null,
+      "modernComputed": {
+        "notes": "Modern institutional observations. ΔT precisely known.",
+        "deltaT_seconds": 50.5,
+        "deltaT_uncertainty_seconds": 0.1
+      },
+      "provenance": "modern",
+      "citation": "NASA Five Millennium Canon; Indian Institute of Astrophysics records"
+    },
+    {
+      "id": "1995-10-24-solar",
+      "date": "1995-10-24",
+      "type": "solar",
+      "subtype": "total",
+      "description": "Total solar eclipse visible across Northern India (Rajasthan to West Bengal). Widely observed modern benchmark.",
+      "location": {
+        "name": "Neem Ka Thana, Rajasthan",
+        "latitude": 27.72,
+        "longitude": 75.79
+      },
+      "historicalSource": null,
+      "modernComputed": {
+        "notes": "Modern benchmark. Extensively observed and documented.",
+        "deltaT_seconds": 60.8,
+        "deltaT_uncertainty_seconds": 0.05
+      },
+      "provenance": "modern",
+      "citation": "NASA Five Millennium Canon; Indian Astronomical Society records"
+    }
+  ]
+}

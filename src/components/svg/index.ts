@@ -5,3 +5,4 @@ export * from './WaterBowl';
 export * from './Horizon';
 export * from './MeasurementArc';
 export * from './AngleMarker';
+export * from './EclipseVisualization';
