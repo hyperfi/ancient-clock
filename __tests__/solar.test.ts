@@ -10,6 +10,10 @@ import {
   solarAltitudeFromShadow,
   shadowLengthFromAltitude,
   STANDARD_GNOMON_HEIGHT,
+  formatAngulas,
+  mahaShanku,
+  mahaChaya,
+  palabhaFromLatitude,
 } from '../src/lib/solar/altitude';
 import { latitudeFromEquinoxShadow } from '../src/lib/solar/latitude';
 
@@ -71,4 +75,28 @@ describe('Gnomon Geometry & Altitude', () => {
     const lat = latitudeFromEquinoxShadow(12, 12);
     expect(lat).toBeCloseTo(45.0, 4);
   });
+
+  it('formats decimal aṅgulas into sexagesimal vyaṅgulas', () => {
+    expect(formatAngulas(12.5).formatted).toBe('12 aṅg 30 vyaṅ');
+    expect(formatAngulas(12).formatted).toBe('12 aṅg 0 vyaṅ');
+    expect(formatAngulas(Infinity).formatted).toBe('∞');
+  });
+
+  it('calculates Mahā-Śaṅku and Mahā-Chāyā on R=3438 sphere', () => {
+    // At 30°, sin = 0.5 -> 3438 * 0.5 = 1719
+    expect(mahaShanku(30)).toBe(1719);
+    // At 60°, cos = 0.5 -> 3438 * 0.5 = 1719
+    expect(mahaChaya(60)).toBe(1719);
+    // At 90°, Śaṅku = 3438, Chāyā = 0
+    expect(mahaShanku(90)).toBe(3438);
+    expect(mahaChaya(90)).toBe(0);
+  });
+
+  it('computes Palabhā correctly for known latitudes', () => {
+    // At 45° latitude, Palabhā = 12 * tan(45°) = 12
+    expect(palabhaFromLatitude(45)).toBeCloseTo(12, 4);
+    // At equator (0°), Palabhā = 0
+    expect(palabhaFromLatitude(0)).toBeCloseTo(0, 4);
+  });
 });
+
