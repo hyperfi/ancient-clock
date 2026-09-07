@@ -749,124 +749,116 @@ export const WaterBowl3D: React.FC<WaterBowl3DProps> = ({
       {/* 3D WebGL Canvas Container */}
       <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
-      {/* Floating 3D Navigation & View Preset Bar */}
-      <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md p-1 rounded-xl border border-stone-200/80 dark:border-stone-800 shadow-sm z-10 text-xs">
-        {onToggleViewMode && (
-          <>
-            <div className="flex rounded-lg overflow-hidden bg-stone-100 dark:bg-stone-800 p-0.5 border border-stone-200 dark:border-stone-700">
-              <button
-                type="button"
-                onClick={() => onToggleViewMode('3d')}
-                className={`px-2 py-0.5 rounded font-medium transition-all flex items-center gap-1 ${
-                  viewMode === '3d' || !viewMode
-                    ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100'
-                }`}
-                title="3D Interactive Simulation Active"
-              >
-                <span>🌐</span>
-                <span className="font-semibold">3D</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => onToggleViewMode('2d')}
-                className={`px-2 py-0.5 rounded font-medium transition-all flex items-center gap-1 ${
-                  viewMode === '2d'
-                    ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100'
-                }`}
-                title="Switch to 2D Technical CAD Diagram"
-              >
-                <span>📐</span>
-                <span className="font-semibold">2D</span>
-              </button>
-            </div>
-            <div className="w-[1px] h-4 bg-stone-300 dark:bg-stone-700 mx-0.5" />
-          </>
-        )}
+      {/* Floating Status Badge (Top Left) */}
+      <div className="absolute top-2.5 left-2.5 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md px-2.5 py-1 rounded-lg border border-stone-200/80 dark:border-stone-800 shadow-xs z-10 pointer-events-none flex items-center gap-1.5 text-[11px]">
+        <span className={`w-2 h-2 rounded-full ${isSinking ? 'bg-rose-500 animate-ping' : flowActive ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400'}`} />
+        <span className="font-semibold text-stone-800 dark:text-stone-100">
+          {isSinking ? 'Vessel Sunk (Nimagna)' : flowActive ? 'Inflow Active' : 'Simulation Paused'}
+        </span>
+        <span className="text-stone-400 dark:text-stone-500 font-mono text-[10px]">
+          ({Math.round(fillLevel * 100)}%)
+        </span>
+      </div>
 
+      {/* View Mode Toggle: 3D / 2D (Top Right) */}
+      {onToggleViewMode && (
+        <div className="absolute top-2.5 right-2.5 z-10 flex rounded-lg overflow-hidden bg-white/90 dark:bg-stone-900/90 backdrop-blur-md p-0.5 border border-stone-200/80 dark:border-stone-800 shadow-xs text-xs">
+          <button
+            type="button"
+            onClick={() => onToggleViewMode('3d')}
+            className={`px-2 py-0.5 rounded font-medium transition-all flex items-center gap-1 ${
+              viewMode === '3d' || !viewMode
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100'
+            }`}
+            title="3D Interactive Simulation Active"
+          >
+            <span>🌐</span>
+            <span className="font-semibold">3D</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onToggleViewMode('2d')}
+            className={`px-2 py-0.5 rounded font-medium transition-all flex items-center gap-1 ${
+              viewMode === '2d'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100'
+            }`}
+            title="Switch to 2D Technical CAD Diagram"
+          >
+            <span>📐</span>
+            <span className="font-semibold">2D</span>
+          </button>
+        </div>
+      )}
+
+      {/* Camera Presets & Orbit Controls (Bottom Right) */}
+      <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md p-1 rounded-xl border border-stone-200/80 dark:border-stone-800 shadow-xs z-10 text-[11px]">
         <button
           type="button"
           onClick={() => setCameraPreset('perspective')}
-          className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+          className={`px-2 py-0.5 rounded-lg font-medium transition-all ${
             activePreset === 'perspective'
               ? 'bg-indigo-600 text-white shadow-xs'
               : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
           }`}
           title="Perspective 3D View"
         >
-          3D Angle
+          Angle
         </button>
 
         <button
           type="button"
           onClick={() => setCameraPreset('top')}
-          className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+          className={`px-2 py-0.5 rounded-lg font-medium transition-all ${
             activePreset === 'top'
               ? 'bg-indigo-600 text-white shadow-xs'
               : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
           }`}
-          title="Top-Down View into Bowl (Kumbha View)"
+          title="Top-Down Kumbha View"
         >
-          Top View
+          Top
         </button>
 
         <button
           type="button"
           onClick={() => setCameraPreset('side')}
-          className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+          className={`px-2 py-0.5 rounded-lg font-medium transition-all ${
             activePreset === 'side'
               ? 'bg-indigo-600 text-white shadow-xs'
               : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
           }`}
           title="Side View aligned with Waterline"
         >
-          Waterline
+          Side
         </button>
 
-        <div className="w-[1px] h-4 bg-stone-300 dark:bg-stone-700 mx-0.5" />
+        <div className="w-[1px] h-3.5 bg-stone-300 dark:bg-stone-700 mx-0.5" />
 
-        {/* Auto Rotate Toggle */}
         <button
           type="button"
           onClick={() => setAutoRotate(!autoRotate)}
-          className={`px-2.5 py-1 rounded-lg font-medium flex items-center gap-1 transition-all ${
+          className={`px-2 py-0.5 rounded-lg font-medium flex items-center gap-1 transition-all ${
             autoRotate
               ? 'bg-amber-500 text-white shadow-xs'
               : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
           }`}
           title="Toggle 360° Auto Rotation"
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={autoRotate ? 'animate-spin' : ''}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={autoRotate ? 'animate-spin' : ''}>
             <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
           </svg>
           <span>Spin</span>
         </button>
       </div>
 
-      {/* Floating Interactive Live Telemetry Card (Top Left) */}
-      <div className="absolute top-3 left-3 bg-white/85 dark:bg-stone-900/85 backdrop-blur-md px-3 py-2 rounded-xl border border-stone-200/80 dark:border-stone-800 shadow-sm z-10 pointer-events-none text-[11px]">
-        <div className="flex items-center gap-2 mb-1">
-          <span className={`w-2 h-2 rounded-full ${isSinking ? 'bg-rose-500 animate-ping' : flowActive ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400'}`} />
-          <span className="font-semibold text-stone-800 dark:text-stone-100">
-            {isSinking ? 'Vessel Sunk (Nimagna)' : flowActive ? 'Inflow Active' : 'Simulation Paused'}
-          </span>
-        </div>
-        <div className="flex gap-3 font-mono text-[10px] text-stone-600 dark:text-stone-300">
-          <span>Filled: <strong className="text-indigo-600 dark:text-indigo-400">{Math.round(fillLevel * 100)}%</strong></span>
-          {freeboardCm !== undefined && (
-            <span>Freeboard: <strong className="text-amber-600 dark:text-amber-400">{freeboardCm.toFixed(1)} cm</strong></span>
-          )}
-        </div>
-      </div>
-
-      {/* Touch / Mouse Interaction Hint (Bottom Center) */}
-      <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 bg-black/40 text-white/90 text-[10px] px-3 py-1 rounded-full backdrop-blur-xs pointer-events-none tracking-wide flex items-center gap-1.5">
+      {/* Touch / Mouse Interaction Hint (Bottom Left, visible on wider containers) */}
+      <div className="hidden md:flex absolute bottom-2.5 left-2.5 bg-black/40 text-white/90 text-[10px] px-2.5 py-1 rounded-full backdrop-blur-xs pointer-events-none tracking-wide items-center gap-1.5">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" />
           <path d="m10 8 4 4-4 4" />
         </svg>
-        <span>Drag to orbit 360° • Scroll / Pinch to zoom</span>
+        <span>Drag to orbit • Scroll to zoom</span>
       </div>
     </div>
   );

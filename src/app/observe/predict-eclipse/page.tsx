@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { ModuleLayout, ProvenanceLabel, SourceTooltip } from '@/components/ui';
 import { computeAhargana } from '@/lib/time/ahargana';
 import { computeLunarEclipse } from '@/history/models/suryaSiddhanta/lunarEclipse';
@@ -12,6 +13,11 @@ import {
 } from '@/lib/astronomy';
 import { EclipseVisualization } from '@/components/svg/EclipseVisualization';
 import benchmarkData from '../../../../data/eclipse-benchmarks.json';
+
+const Eclipse3D = dynamic(
+  () => import('@/components/three/Eclipse3D').then((m) => m.Eclipse3D),
+  { ssr: false }
+);
 
 interface Benchmark {
   id: string;
@@ -38,6 +44,11 @@ export default function PredictEclipsePage() {
   const [latitude, setLatitude] = useState<number>(10.87);
   const [longitude, setLongitude] = useState<number>(75.95);
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
+
+  // Pedagogical Navigation & Visualizer Mode
+  const [mainVisualizerMode, setMainVisualizerMode] = useState<'3d' | 'chedyaka' | 'sky' | 'space'>('3d');
+  const [activeMasterclassKey, setActiveMasterclassKey] = useState<number>(1);
+  const [interactiveBeta, setInteractiveBeta] = useState<number>(0.28); // degrees latitude for interactive key 5
 
   // Interactive Timeline Scrubber & Animation State
   const [timelineProgress, setTimelineProgress] = useState<number>(0.5); // 0.5 = peak / maximum
@@ -372,19 +383,101 @@ export default function PredictEclipsePage() {
         </div>
 
         {/* ========================================================================= */}
-        {/* 3. INTERACTIVE SIMULATION CANVAS & TIMELINE SCRUBBER                      */}
+        {/* 3. INTERACTIVE VISUALIZATION HUB & TIMELINE SCRUBBER                      */}
         {/* ========================================================================= */}
         <div className="flex flex-col gap-4">
-          {/* Main Visualizer SVG Card */}
-          <EclipseVisualization
-            eclipseType={eclipseType}
-            progress={timelineProgress}
-            magnitude={displayMagnitude}
-            obscuration={displayObscuration}
-            kind={modernResult.kind}
-            moonLatitudeDeg={historicalResult?.moonLatitude ?? modernPositions.moonEclipticLatitude}
-            isEclipse={historicalResult?.isEclipse ?? (modernResult.kind !== 'none')}
-          />
+          
+          {/* Visualizer Mode Switcher Toolbar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#141210] p-3.5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-charcoal dark:text-stone-200">
+                Primary Simulation Engine
+              </span>
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900">
+                {mainVisualizerMode === '3d'
+                  ? '🌐 3D Cosmic Space'
+                  : mainVisualizerMode === 'chedyaka'
+                  ? '📐 Chedyaka Projection'
+                  : mainVisualizerMode === 'sky'
+                  ? '🔭 Observer Sky'
+                  : '🪐 2D Ray Geometry'}
+              </span>
+            </div>
+
+            <div className="flex flex-wrap rounded-xl bg-stone-100 dark:bg-stone-800/80 p-1 border border-stone-200 dark:border-stone-700 text-xs font-medium">
+              <button
+                type="button"
+                onClick={() => setMainVisualizerMode('3d')}
+                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                  mainVisualizerMode === '3d'
+                    ? 'bg-indigo-600 text-white shadow-xs font-semibold'
+                    : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100'
+                }`}
+              >
+                <span>🌐</span> 3D Cosmic Space
+              </button>
+              <button
+                type="button"
+                onClick={() => setMainVisualizerMode('chedyaka')}
+                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                  mainVisualizerMode === 'chedyaka'
+                    ? 'bg-indigo-600 text-white shadow-xs font-semibold'
+                    : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100'
+                }`}
+              >
+                <span>📐</span> Chedyaka Projection (SS Ch.6)
+              </button>
+              <button
+                type="button"
+                onClick={() => setMainVisualizerMode('sky')}
+                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                  mainVisualizerMode === 'sky'
+                    ? 'bg-indigo-600 text-white shadow-xs font-semibold'
+                    : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100'
+                }`}
+              >
+                <span>🔭</span> Observe Sky
+              </button>
+              <button
+                type="button"
+                onClick={() => setMainVisualizerMode('space')}
+                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                  mainVisualizerMode === 'space'
+                    ? 'bg-indigo-600 text-white shadow-xs font-semibold'
+                    : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100'
+                }`}
+              >
+                <span>🪐</span> 2D Ray Geometry
+              </button>
+            </div>
+          </div>
+
+          {/* Active Visualizer Render */}
+          {mainVisualizerMode === '3d' ? (
+            <div className="w-full h-[460px] sm:h-[500px]">
+              <Eclipse3D
+                eclipseType={eclipseType}
+                progress={timelineProgress}
+                magnitude={displayMagnitude}
+                obscuration={displayObscuration}
+                kind={modernResult.kind}
+                moonLatitudeDeg={historicalResult?.moonLatitude ?? modernPositions.moonEclipticLatitude}
+                isEclipse={historicalResult?.isEclipse ?? (modernResult.kind !== 'none')}
+              />
+            </div>
+          ) : (
+            <EclipseVisualization
+              eclipseType={eclipseType}
+              progress={timelineProgress}
+              magnitude={displayMagnitude}
+              obscuration={displayObscuration}
+              kind={modernResult.kind}
+              moonLatitudeDeg={historicalResult?.moonLatitude ?? modernPositions.moonEclipticLatitude}
+              isEclipse={historicalResult?.isEclipse ?? (modernResult.kind !== 'none')}
+              viewMode={mainVisualizerMode}
+              onViewModeChange={(m) => setMainVisualizerMode(m)}
+            />
+          )}
 
           {/* Timeline Scrubber & Playback Controls Console */}
           <div className="bg-white dark:bg-[#141210] p-6 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col gap-5">
@@ -527,6 +620,487 @@ export default function PredictEclipsePage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* SŪRYA SIDDHĀNTA MASTERCLASS: 5 KEYS TO ANCIENT ECLIPSE PREDICTION         */}
+        {/* ========================================================================= */}
+        <div className="bg-white dark:bg-[#141210] p-6 sm:p-8 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col gap-6">
+          {/* Header */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 dark:border-stone-800 pb-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] uppercase tracking-widest font-mono font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                  Pedagogical Masterclass • Sūrya Siddhānta Ch. 4–6
+                </span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold text-charcoal dark:text-stone-100">
+                How Ancient Astronomers Predicted Eclipses
+              </h2>
+              <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                Deconstructing the 1,500-year-old mathematical engine: from 4.32 million-year cosmic cycles to the Pythagorean geometry of shadow contact.
+              </p>
+            </div>
+            <ProvenanceLabel type="documented" />
+          </div>
+
+          {/* Masterclass Key Selector Tabs */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {[
+              { id: 1, label: '1. Cosmic Tilt & Nodes', sub: 'Rāhu & Ketu' },
+              { id: 2, label: '2. Cosmic Clockwork', sub: 'Ahargaṇa 3102 BCE' },
+              { id: 3, label: '3. Epicycle Engine', sub: 'Manda Phala (R=3438)' },
+              { id: 4, label: '4. Earth Shadow Cone', sub: 'Bhūcchāyā Taper' },
+              { id: 5, label: '5. Pythagorean Math', sub: 'Grāsa & Sthityardha' },
+            ].map((key) => {
+              const isActive = activeMasterclassKey === key.id;
+              return (
+                <button
+                  key={key.id}
+                  type="button"
+                  onClick={() => setActiveMasterclassKey(key.id)}
+                  className={`p-3 rounded-xl border text-left transition-all flex flex-col gap-1 ${
+                    isActive
+                      ? 'border-amber-500 bg-amber-50/80 dark:bg-amber-950/50 shadow-sm ring-1 ring-amber-500'
+                      : 'border-stone-200 dark:border-stone-800 bg-stone-50/40 dark:bg-stone-900/30 hover:border-stone-300 dark:hover:border-stone-700'
+                  }`}
+                >
+                  <span className={`text-xs font-semibold ${isActive ? 'text-amber-900 dark:text-amber-200' : 'text-stone-700 dark:text-stone-300'}`}>
+                    {key.label}
+                  </span>
+                  <span className="text-[10px] font-mono text-stone-500 dark:text-stone-400">
+                    {key.sub}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Masterclass Tab Panels */}
+          <div className="p-5 sm:p-6 rounded-2xl bg-[#FEFDF5] dark:bg-stone-900/50 border border-amber-200/80 dark:border-amber-900/40">
+            
+            {/* ── KEY 1: The Cosmic Tilt & Nodes ── */}
+            {activeMasterclassKey === 1 && (
+              <div className="flex flex-col gap-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/60 dark:border-stone-800 pb-3">
+                  <div>
+                    <h3 className="text-base font-bold text-charcoal dark:text-stone-100 flex items-center gap-2">
+                      <span>Key 1: The Cosmic Tilt & The Dragon&apos;s Nodes (Rāhu & Ketu)</span>
+                    </h3>
+                    <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
+                      Why doesn&apos;t every Full Moon (Pūrṇimā) or New Moon (Amāvasyā) produce an eclipse?
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono px-2.5 py-1 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                    Orbital Inclination = 5.145° (SS: 4°30&apos;)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+                  <div className="space-y-3 text-xs leading-relaxed text-stone-700 dark:text-stone-300">
+                    <p>
+                      In ancient Indian astronomy, the Sun travels along the <strong>Krāntivṛtta</strong> (Ecliptic circle). The Moon&apos;s orbit, however, is tilted by approximately <strong>5.145°</strong> relative to the ecliptic.
+                    </p>
+                    <p>
+                      Because of this vertical separation (called <strong>Vikṣepa</strong> or lunar latitude), most months the Full Moon passes several degrees above or below the Earth&apos;s shadow cone, resulting in no eclipse.
+                    </p>
+                    <div className="p-3.5 bg-white dark:bg-stone-900 rounded-xl border border-amber-200/80 dark:border-stone-800 space-y-1.5">
+                      <div className="font-semibold text-amber-900 dark:text-amber-300 text-xs">
+                        The Eclipse Window Rule (Grahaṇa-Sīmā):
+                      </div>
+                      <p className="text-[11px] text-stone-600 dark:text-stone-400">
+                        An eclipse is geometrically possible <em>only</em> when the opposition/conjunction occurs within <strong>~14°</strong> of either node for a Lunar eclipse (or <strong>~11.5°</strong> for Solar).
+                      </p>
+                      <div className="font-mono text-[11px] text-indigo-700 dark:text-indigo-300 pt-1">
+                        Active Date Node Distance: {Math.abs(historicalResult?.moonLatitude || 0) < 0.9 ? 'Within Eclipse Limit ✓' : 'Outside Window'} ({Math.abs(historicalResult?.moonLatitude || 0).toFixed(2)}° latitude)
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Visual Diagram for Key 1 */}
+                  <div className="p-4 bg-white dark:bg-stone-900 rounded-xl border border-amber-200/70 dark:border-stone-800 flex flex-col items-center">
+                    <svg viewBox="0 0 320 160" className="w-full h-auto max-w-xs">
+                      {/* Ecliptic Plane Line */}
+                      <line x1="20" y1="80" x2="300" y2="80" stroke="#3B82F6" strokeWidth="1.8" />
+                      <text x="30" y="72" fontSize="9" fill="#3B82F6" fontFamily="sans-serif">Ecliptic (Krāntivṛtta)</text>
+                      
+                      {/* Tilted Lunar Orbit */}
+                      <line x1="25" y1="125" x2="295" y2="35" stroke="#6366F1" strokeWidth="1.8" strokeDasharray="4 3" />
+                      <text x="200" y="42" fontSize="9" fill="#6366F1" fontFamily="sans-serif">Moon Orbit (5.145° Tilt)</text>
+
+                      {/* Ascending Node: Rāhu */}
+                      <circle cx="160" cy="80" r="5" fill="#DC2626" />
+                      <text x="160" y="100" fontSize="10" fill="#DC2626" fontWeight="bold" textAnchor="middle">
+                        Rāhu ☊ (Node)
+                      </text>
+
+                      {/* Earth Shadow Cone */}
+                      <polygon points="140,80 180,68 180,92" fill="#7F1D1D" fillOpacity="0.4" stroke="#B91C1C" strokeWidth="1" />
+
+                      {/* Moon in node vs Moon out of node */}
+                      <circle cx="160" cy="80" r="4" fill="#F8FAFC" stroke="#94A3B8" strokeWidth="1" />
+                      <text x="160" y="65" fontSize="8" fill="#10B981" fontWeight="600" textAnchor="middle">
+                        Eclipse at Node!
+                      </text>
+
+                      {/* Missed Moon far from node */}
+                      <circle cx="260" cy="49" r="4" fill="#94A3B8" />
+                      <line x1="260" y1="49" x2="260" y2="80" stroke="#EF4444" strokeWidth="1" strokeDasharray="1 1" />
+                      <text x="260" y="92" fontSize="7.5" fill="#EF4444" textAnchor="middle">Miss: Vikṣepa &gt; 1°</text>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── KEY 2: The Cosmic Clockwork (Ahargaṇa) ── */}
+            {activeMasterclassKey === 2 && (
+              <div className="flex flex-col gap-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/60 dark:border-stone-800 pb-3">
+                  <div>
+                    <h3 className="text-base font-bold text-charcoal dark:text-stone-100">
+                      Key 2: The Cosmic Clockwork (Ahargaṇa from 3102 BCE)
+                    </h3>
+                    <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
+                      Counting elapsed civil days from the Kali Yuga zero-meridian epoch.
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono px-2.5 py-1 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                    Epoch: Midnight Feb 17/18, 3102 BCE (Ujjain)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+                  <div className="space-y-3 text-xs leading-relaxed text-stone-700 dark:text-stone-300">
+                    <p>
+                      Before atomic clocks or telescopes, ancient Indian astronomers calculated planetary positions using integer revolution counts over astronomical super-cycles called <strong>Mahāyugas</strong> (4,320,000 solar years).
+                    </p>
+                    <p>
+                      To find where any celestial body is today, you compute the <strong>Ahargaṇa</strong> (the total civil days elapsed since the Kali Yuga epoch at the Prime Meridian of Ujjain, 75.76°E).
+                    </p>
+                    <div className="font-mono text-[11px] p-3 rounded-xl bg-white dark:bg-stone-900 border border-amber-200/80 dark:border-stone-800 space-y-1.5 text-indigo-950 dark:text-indigo-200">
+                      <div className="font-semibold text-stone-700 dark:text-stone-300">Mean Motion Formula:</div>
+                      <div>Mean Longitude = (Revolutions / Civil Days) × Ahargaṇa × 360°</div>
+                      <div className="text-[10px] text-stone-500 dark:text-stone-400">
+                        1 Mahāyuga = 1,577,917,828 civil days • Moon = 57,753,336 revs
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-white dark:bg-stone-900 rounded-xl border border-amber-200/70 dark:border-stone-800 space-y-3 font-mono text-xs">
+                    <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2">
+                      <span className="text-stone-500 dark:text-stone-400">Target Date</span>
+                      <span className="font-semibold text-stone-800 dark:text-stone-200">{dateStr}</span>
+                    </div>
+                    <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2">
+                      <span className="text-stone-500 dark:text-stone-400">Ahargaṇa (Elapsed Civil Days)</span>
+                      <span className="font-bold text-amber-600 dark:text-amber-400">
+                        {Math.round(computeAhargana(parsedDate.year, parsedDate.month, parsedDate.day, 12, 0, 0, 'audayika')).toLocaleString()} days
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2">
+                      <span className="text-stone-500 dark:text-stone-400">Sun Daily Motion</span>
+                      <span className="text-stone-800 dark:text-stone-200">~0.9856° / day (59&apos;08&quot;)</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-stone-500 dark:text-stone-400">Moon Daily Motion</span>
+                      <span className="text-stone-800 dark:text-stone-200">~13.1764° / day (790&apos;35&quot;)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── KEY 3: The Epicycle Engine (Manda-Phala) ── */}
+            {activeMasterclassKey === 3 && (
+              <div className="flex flex-col gap-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/60 dark:border-stone-800 pb-3">
+                  <div>
+                    <h3 className="text-base font-bold text-charcoal dark:text-stone-100">
+                      Key 3: The Epicycle Engine (Manda Phala & The R=3438 Sine Table)
+                    </h3>
+                    <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
+                      Correcting for Keplerian eccentricity before Kepler: epicyclic equation of the centre.
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono px-2.5 py-1 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                    Radius R = 3438&apos; (Sinus Totus)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+                  <div className="space-y-3 text-xs leading-relaxed text-stone-700 dark:text-stone-300">
+                    <p>
+                      The Sun and Moon do not move at constant speed across the sky. They accelerate near perihelion/perigee and decelerate at aphelion/apogee.
+                    </p>
+                    <p>
+                      The Sūrya Siddhānta models this using an <strong>epicycle (Manda-paridhi)</strong> riding upon a deferent circle. The correction angle is the <strong>Manda Phala</strong> (equation of centre).
+                    </p>
+                    <p>
+                      Instead of a modern unit circle ($R=1$), Indian astronomers defined the radius of the circle as <strong>R = 3438 arcminutes</strong>. Why? Because $2\pi \times 3438 \approx 21,600&apos;$, meaning that at small angles, 1 unit of chord length on the circumference is exactly <strong>1 arcminute</strong>!
+                    </p>
+                    <div className="font-mono text-[11px] p-2.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-900 text-indigo-900 dark:text-indigo-300">
+                      True Longitude (Spuṭa) = Mean Longitude ± Manda Phala
+                    </div>
+                  </div>
+
+                  {/* Visual Diagram for Epicycle */}
+                  <div className="p-4 bg-white dark:bg-stone-900 rounded-xl border border-amber-200/70 dark:border-stone-800 flex flex-col items-center">
+                    <svg viewBox="0 0 280 180" className="w-full h-auto max-w-xs">
+                      {/* Central Earth */}
+                      <circle cx="140" cy="110" r="10" fill="#2563EB" stroke="#60A5FA" strokeWidth="1.5" />
+                      <text x="140" y="132" fontSize="9" fill="#2563EB" textAnchor="middle" fontWeight="600">Earth (Bhū)</text>
+
+                      {/* Deferent Circle Arc */}
+                      <path d="M 40 110 A 100 100 0 0 1 240 110" fill="none" stroke="#94A3B8" strokeWidth="1.2" strokeDasharray="3 3" />
+                      <text x="60" y="60" fontSize="8" fill="#94A3B8">Deferent (Kakṣyā)</text>
+
+                      {/* Mean Planet position */}
+                      <circle cx="140" cy="10" r="3" fill="#D97706" />
+                      <line x1="140" y1="110" x2="140" y2="10" stroke="#D97706" strokeWidth="1" strokeDasharray="2 2" />
+                      <text x="148" y="24" fontSize="8" fill="#D97706">Mean Planet</text>
+
+                      {/* Epicycle Circle */}
+                      <circle cx="140" cy="10" r="24" fill="none" stroke="#EF4444" strokeWidth="1.5" />
+                      <text x="140" y="44" fontSize="8" fill="#EF4444" textAnchor="middle">Manda Epicycle</text>
+
+                      {/* True Planet on Epicycle */}
+                      <circle cx="158" cy="22" r="4.5" fill="#10B981" />
+                      <line x1="140" y1="110" x2="158" y2="22" stroke="#10B981" strokeWidth="1.5" />
+                      <text x="168" y="16" fontSize="8.5" fill="#10B981" fontWeight="600">True Planet</text>
+
+                      {/* Arc of Manda Phala */}
+                      <path d="M 140 70 A 40 40 0 0 1 146 71" fill="none" stroke="#D97706" strokeWidth="2" />
+                      <text x="156" y="76" fontSize="7.5" fill="#D97706">Manda Eq. (Δθ)</text>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── KEY 4: Earth's Shadow Cone (Bhū-Chāyā) ── */}
+            {activeMasterclassKey === 4 && (
+              <div className="flex flex-col gap-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/60 dark:border-stone-800 pb-3">
+                  <div>
+                    <h3 className="text-base font-bold text-charcoal dark:text-stone-100">
+                      Key 4: Earth&apos;s Conical Shadow (Bhūcchāyā Taper)
+                    </h3>
+                    <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
+                      Computing the size of Earth&apos;s shadow at the Moon&apos;s distance using similar triangles.
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono px-2.5 py-1 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                    Shadow Diameter ~80&apos; (r = 40&apos;)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+                  <div className="space-y-3 text-xs leading-relaxed text-stone-700 dark:text-stone-300">
+                    <p>
+                      Because the Sun is vastly larger than the Earth, the Earth casts a tapering cone of darkness into space.
+                    </p>
+                    <p>
+                      In the Sūrya Siddhānta (Chapter 4, Verses 1–5), the diameters are stated in <em>yojanas</em>:
+                    </p>
+                    <ul className="list-disc pl-5 space-y-1 font-mono text-[11px] text-stone-800 dark:text-stone-200">
+                      <li>Sun Diameter = <strong>6,500 yojanas</strong></li>
+                      <li>Earth Diameter = <strong>1,600 yojanas</strong></li>
+                      <li>Moon Diameter = <strong>480 yojanas</strong></li>
+                    </ul>
+                    <p>
+                      Using daily motions to deduce apparent distances, the Siddhānta calculates that at the Moon&apos;s distance, the Earth&apos;s shadow cone has an apparent radius of approximately <strong>40 arcminutes</strong>, while the Moon disc has a radius of approximately <strong>16 arcminutes</strong>.
+                    </p>
+                    <p className="text-[11px] text-amber-800 dark:text-amber-300 font-semibold">
+                      Therefore, the shadow is ~2.5 times wider than the Moon!
+                    </p>
+                  </div>
+
+                  {/* Visual Comparison Graphic */}
+                  <div className="p-4 bg-white dark:bg-stone-900 rounded-xl border border-amber-200/70 dark:border-stone-800 flex flex-col items-center gap-3">
+                    <svg viewBox="0 0 280 140" className="w-full h-auto max-w-xs">
+                      {/* Shadow Disc */}
+                      <circle cx="140" cy="70" r="50" fill="#260808" stroke="#B91C1C" strokeWidth="1.8" />
+                      <text x="140" y="55" fontSize="9" fill="#EF4444" textAnchor="middle" fontWeight="bold">
+                        Bhūcchāyā (Shadow Disc)
+                      </text>
+                      <text x="140" y="70" fontSize="8" fill="#FCA5A5" textAnchor="middle" fontFamily="monospace">
+                        Radius = ~40 arcmin
+                      </text>
+
+                      {/* Moon Disc Comparison */}
+                      <circle cx="140" cy="95" r="20" fill="#F8FAFC" stroke="#94A3B8" strokeWidth="1.2" fillOpacity="0.9" />
+                      <text x="140" y="98" fontSize="8" fill="#0F172A" textAnchor="middle" fontWeight="bold">
+                        Moon (~16&apos;)
+                      </text>
+                    </svg>
+                    <div className="text-[11px] text-stone-500 dark:text-stone-400 text-center font-mono">
+                      Sum of Semi-Diameters (Māna-aikya-ardha) = 40&apos; + 16&apos; = <strong>56 arcminutes</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── KEY 5: The Pythagorean Contact Math (Grāsa & Sthityardha) ── */}
+            {activeMasterclassKey === 5 && (
+              <div className="flex flex-col gap-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/60 dark:border-stone-800 pb-3">
+                  <div>
+                    <h3 className="text-base font-bold text-charcoal dark:text-stone-100">
+                      Key 5: The Pythagorean Contact Math (Grāsa & Sthityardha)
+                    </h3>
+                    <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
+                      Interactive calculation sandbox: adjust the lunar latitude (Vikṣepa) and observe duration and magnitude recalculate live!
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono px-2.5 py-1 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                    Interactive Geometry Sandbox
+                  </span>
+                </div>
+
+                {(() => {
+                  const shadowR = 40.0;
+                  const moonR = 16.0;
+                  const sumR = shadowR + moonR; // 56'
+                  const betaArcmin = interactiveBeta * 60; // in arcmin
+                  const obscuration = Math.max(0, sumR - betaArcmin);
+                  const mag = obscuration / (moonR * 2);
+                  const sthitSq = Math.pow(sumR, 2) - Math.pow(betaArcmin, 2);
+                  const sthitBase = sthitSq > 0 ? Math.sqrt(sthitSq) : 0;
+                  const motionDiff = ((13.176 - 0.986) * 60) / 60; // arcmin per ghatika ~12.19
+                  const durationGhatika = sthitBase > 0 ? (sthitBase / motionDiff) * 2 : 0;
+                  const durationMinutes = durationGhatika * 24;
+
+                  return (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+                      <div className="space-y-4 text-xs">
+                        {/* Interactive Slider for Lunar Latitude */}
+                        <div className="p-4 bg-white dark:bg-stone-900 rounded-xl border border-amber-200/80 dark:border-stone-800 space-y-2">
+                          <div className="flex justify-between items-center text-xs font-semibold">
+                            <span className="text-stone-700 dark:text-stone-300">
+                              Adjust Lunar Latitude β (Vikṣepa):
+                            </span>
+                            <span className="font-mono text-amber-700 dark:text-amber-400">
+                              {interactiveBeta.toFixed(2)}° ({betaArcmin.toFixed(1)}&apos;)
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="1.1"
+                            step="0.02"
+                            value={interactiveBeta}
+                            onChange={(e) => setInteractiveBeta(parseFloat(e.target.value))}
+                            className="w-full h-2.5 bg-stone-200 dark:bg-stone-800 rounded-lg appearance-none cursor-pointer accent-amber-600"
+                          />
+                          <div className="flex justify-between text-[10px] text-stone-400 font-mono">
+                            <span>0° (Central Totality)</span>
+                            <span>0.40° (Partial)</span>
+                            <span>0.93°+ (Miss: &gt;56&apos;)</span>
+                          </div>
+                        </div>
+
+                        {/* Pythagorean Formulas Display */}
+                        <div className="space-y-2 font-mono text-[11px] bg-amber-50/60 dark:bg-stone-950/60 p-3.5 rounded-xl border border-amber-200/60 dark:border-stone-800 text-stone-800 dark:text-stone-200">
+                          <div>
+                            <strong>Grāsa (Magnitude):</strong> (r_shadow + r_moon) - |β| = 56&apos; - {betaArcmin.toFixed(1)}&apos; ={' '}
+                            <span className="text-amber-600 dark:text-amber-400 font-bold">{mag.toFixed(2)}</span>
+                          </div>
+                          <div>
+                            <strong>Pythagorean Base:</strong> √(56² - {betaArcmin.toFixed(1)}²) ={' '}
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">{sthitBase.toFixed(1)} arcmin</span>
+                          </div>
+                          <div>
+                            <strong>Total Duration:</strong> (Base / RelMotion) × 2 ={' '}
+                            <span className="text-indigo-600 dark:text-indigo-400 font-bold">
+                              {durationGhatika.toFixed(1)} ghaṭī ({durationMinutes.toFixed(0)} min)
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-semibold text-stone-600 dark:text-stone-400">Status:</span>
+                          <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold font-mono ${
+                            mag >= 1.0
+                              ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300'
+                              : mag > 0
+                              ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                              : 'bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-400'
+                          }`}>
+                            {mag >= 1.0 ? '🌕 Total Eclipse (Sarva-Grahaṇa)' : mag > 0 ? '🌖 Partial Eclipse (Khaṇḍa-Grahaṇa)' : '❌ Miss (No Eclipse)'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Live Dynamic Right-Triangle SVG */}
+                      <div className="p-4 bg-white dark:bg-stone-900 rounded-xl border border-amber-200/70 dark:border-stone-800 flex flex-col items-center">
+                        <svg viewBox="0 0 260 180" className="w-full h-auto max-w-xs">
+                          {/* Shadow center O */}
+                          <circle cx="50" cy="140" r="4" fill="#B91C1C" />
+                          <text x="45" y="156" fontSize="9" fill="#B91C1C" fontWeight="bold">O (Shadow Center)</text>
+
+                          {/* Dynamic Perpendicular line (beta) */}
+                          {(() => {
+                            const scale = 1.9;
+                            const pythY = 140 - Math.min(105, betaArcmin * scale);
+                            const pythX = 50 + Math.min(170, sthitBase * scale);
+
+                            return (
+                              <g>
+                                {/* Contact circle arc */}
+                                <path
+                                  d={`M 50 ${140 - 56 * scale} A ${56 * scale} ${56 * scale} 0 0 1 ${50 + 56 * scale} 140`}
+                                  fill="none"
+                                  stroke="#F59E0B"
+                                  strokeWidth="1.2"
+                                  strokeDasharray="3 3"
+                                />
+
+                                {/* Triangle */}
+                                {sthitBase > 0 && (
+                                  <>
+                                    <polygon
+                                      points={`50,140 50,${pythY} ${pythX},${pythY}`}
+                                      fill="#D97706"
+                                      fillOpacity="0.15"
+                                      stroke="#D97706"
+                                      strokeWidth="1"
+                                    />
+                                    {/* Perpendicular: Beta */}
+                                    <line x1="50" y1="140" x2="50" y2={pythY} stroke="#EF4444" strokeWidth="2.5" />
+                                    <text x="35" y={(140 + pythY) / 2 + 3} fontSize="8.5" fill="#EF4444" fontWeight="bold" textAnchor="end">
+                                      β = {betaArcmin.toFixed(0)}&apos;
+                                    </text>
+
+                                    {/* Hypotenuse: 56' */}
+                                    <line x1="50" y1="140" x2={pythX} y2={pythY} stroke="#F59E0B" strokeWidth="2" />
+                                    <text x={(50 + pythX) / 2 + 10} y={(140 + pythY) / 2 + 12} fontSize="8.5" fill="#D97706" fontWeight="bold">
+                                      Hypotenuse = 56&apos;
+                                    </text>
+
+                                    {/* Base: Sthityardha */}
+                                    <line x1="50" y1={pythY} x2={pythX} y2={pythY} stroke="#10B981" strokeWidth="2.5" />
+                                    <text x={(50 + pythX) / 2} y={pythY - 6} fontSize="9" fill="#10B981" fontWeight="bold" textAnchor="middle">
+                                      Base = {sthitBase.toFixed(1)}&apos;
+                                    </text>
+
+                                    {/* Contact point on circle */}
+                                    <circle cx={pythX} cy={pythY} r="4" fill="#10B981" />
+                                    <text x={pythX + 6} y={pythY + 3} fontSize="8" fill="#10B981">First Contact</text>
+                                  </>
+                                )}
+                              </g>
+                            );
+                          })()}
+                        </svg>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
           </div>
         </div>
 
@@ -951,6 +1525,32 @@ export default function PredictEclipsePage() {
               </p>
             </div>
           )}
+
+          {/* Historical Legacy: Parameśvara's 55-Year Observation Quest */}
+          <div className="mt-2 p-5 bg-gradient-to-br from-amber-50/70 to-indigo-50/40 dark:from-stone-900/90 dark:to-indigo-950/30 rounded-2xl border border-amber-200/80 dark:border-stone-800 flex flex-col sm:flex-row gap-4 items-start">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-400/10 flex items-center justify-center text-xl shrink-0">
+              📜
+            </div>
+            <div className="space-y-1.5 text-xs text-stone-700 dark:text-stone-300 leading-relaxed">
+              <div className="flex items-center gap-2">
+                <h4 className="font-bold text-charcoal dark:text-stone-100 text-sm">
+                  The Empirical Turning Point: Parameśvara&apos;s 55-Year Quest (1393–1448 CE)
+                </h4>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                  Dṛgganita Revolution
+                </span>
+              </div>
+              <p>
+                By the 15th century, the Sūrya Siddhānta equations had been in use for over six centuries. While remarkably accurate for their era, small secular drift in mean revolution rates caused eclipses to arrive <strong>15 to 30 minutes earlier or later</strong> than calculated.
+              </p>
+              <p>
+                From his observatory on the banks of the Bhāratapuzha River in Thirunavaya, Kerala, astronomer <strong>Parameśvara</strong> conducted continuous, systematic observations of lunar and solar eclipses for <strong>55 consecutive years</strong>. Refusing to treat ancient texts as immutable dogma, he declared that astronomical formulas must agree with observation (<em>dṛk-samvāda</em>).
+              </p>
+              <p className="italic text-stone-600 dark:text-stone-400">
+                In 1431 CE, he authored the <strong>Dṛgganita</strong> system, introducing empirical corrections (<em>bīja</em>) that aligned calculated contact times with reality—a foundational milestone of the legendary Kerala School of Astronomy and Mathematics.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </ModuleLayout>

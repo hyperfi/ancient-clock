@@ -169,18 +169,108 @@ export const GURU_AKSHARA: TimeUnit = {
     'Experimentally verified by R.N. Iyengar et al.',
 };
 
-// ─── Vedāṅga Jyotiṣa Convention (for comparison) ────────────────────────────
+/** Gurvakṣara constants (Bhāskara I calibration) */
+export const GURU_AKSHARAS_PER_PRANA = 10;
+export const GURU_AKSHARAS_PER_VINADI = 60;
+export const GURU_AKSHARAS_PER_GHATIKA = 3600;
+export const GURU_AKSHARAS_PER_DAY = 216000;
+export const SECONDS_PER_GURU_AKSHARA = 0.4;
+
+// ─── Vedāṅga Jyotiṣa Convention ─────────────────────────────────────────────
+
+export const NADIKAS_PER_DAY = 60;
+export const KALAS_PER_NADIKA = 10;
+export const KASTHAS_PER_KALA = 124;
+export const MATRAS_PER_KASTHA = 10;
+
+export const SECONDS_PER_NADIKA = 1440; // 24 minutes (same as ghaṭikā)
+export const SECONDS_PER_KALA = 144; // 2.4 minutes
+export const SECONDS_PER_KASTHA = 144 / 124; // ~1.16129 seconds
+export const SECONDS_PER_MATRA = SECONDS_PER_KASTHA / 10; // ~0.116129 seconds
 
 /**
  * The Vedāṅga Jyotiṣa uses a different, non-sexagesimal sub-unit system.
  * PROVENANCE: DOCUMENTED
- * SOURCE: Vedāṅga Jyotiṣa text
+ * SOURCE: Vedāṅga Jyotiṣa text (Yājuṣa 7-8, Ārcha 8)
  */
 export const VEDANGA_JYOTISHA_NOTE =
-  'The Vedāṅga Jyotiṣa (~1st millennium BCE) uses a different system: ' +
-  '10 mātrās = 1 kāṣṭhā, 124 kāṣṭhās = 1 kalā, ~10 kalās = 1 nāḍikā. ' +
-  'The higher-level units (nāḍikā, muhūrta, day) remain consistent, but ' +
-  'sub-divisions differ from the siddhāntic pala/vināḍī system.';
+  'The Vedāṅga Jyotiṣa (~1st millennium BCE) uses an ancient non-sexagesimal system: ' +
+  '10 mātrās = 1 kāṣṭhā, 124 kāṣṭhās = 1 kalā, 10 kalās = 1 nāḍikā, 2 nāḍikās = 1 muhūrta, 30 muhūrtas = 1 ahorātra. ' +
+  'The macro units (nāḍikā/ghaṭikā, muhūrta, day) match Siddhāntic astronomy, but ' +
+  'internal sub-divisions reflect the pre-Siddhāntic Vedic sacrificial calendar.';
+
+export const VEDANGA_UNITS: TimeUnit[] = [
+  {
+    id: 'matra',
+    name: 'Mātrā',
+    devanagari: 'मात्रा',
+    aliases: ['akṣara-kāla'],
+    seconds: SECONDS_PER_MATRA,
+    parentRelation: { count: 10, unitId: 'kastha' },
+    provenance: 'documented',
+    source: 'Vedāṅga Jyotiṣa (Yājuṣa 7)',
+    notes: 'Time required to utter one short syllable or close the eye (nimeṣa).',
+  },
+  {
+    id: 'kastha',
+    name: 'Kāṣṭhā',
+    devanagari: 'काष्ठा',
+    aliases: [],
+    seconds: SECONDS_PER_KASTHA,
+    subdivisions: { count: 10, unitId: 'matra' },
+    parentRelation: { count: 124, unitId: 'kala' },
+    provenance: 'documented',
+    source: 'Vedāṅga Jyotiṣa (Yājuṣa 7)',
+    notes: '10 mātrās = 1 kāṣṭhā ≈ 1.161 seconds.',
+  },
+  {
+    id: 'kala',
+    name: 'Kalā',
+    devanagari: 'कला',
+    aliases: [],
+    seconds: SECONDS_PER_KALA,
+    subdivisions: { count: 124, unitId: 'kastha' },
+    parentRelation: { count: 10, unitId: 'nadika' },
+    provenance: 'documented',
+    source: 'Vedāṅga Jyotiṣa (Yājuṣa 7–8)',
+    notes: '124 kāṣṭhās = 1 kalā = 144 seconds (2.4 minutes).',
+  },
+  {
+    id: 'nadika',
+    name: 'Nāḍikā',
+    devanagari: 'नाडिका',
+    aliases: ['ghaṭikā', 'daṇḍa'],
+    seconds: SECONDS_PER_NADIKA,
+    subdivisions: { count: 10, unitId: 'kala' },
+    parentRelation: { count: 2, unitId: 'muhurta' },
+    provenance: 'documented',
+    source: 'Vedāṅga Jyotiṣa (Yājuṣa 8)',
+    notes: '10 kalās = 1 nāḍikā = 24 minutes. Equal to 1 ghaṭikā.',
+  },
+  {
+    id: 'muhurta',
+    name: 'Muhūrta',
+    devanagari: 'मुहूर्त',
+    aliases: [],
+    seconds: SECONDS_PER_MUHURTA,
+    subdivisions: { count: 2, unitId: 'nadika' },
+    parentRelation: { count: 30, unitId: 'ahoratra' },
+    provenance: 'documented',
+    source: 'Vedāṅga Jyotiṣa and Siddhānta universal',
+    notes: '2 nāḍikās = 1 muhūrta = 48 minutes.',
+  },
+  {
+    id: 'ahoratra',
+    name: 'Ahorātra',
+    devanagari: 'अहोरात्र',
+    aliases: ['dyu-niśā'],
+    seconds: SECONDS_PER_DAY,
+    subdivisions: { count: 30, unitId: 'muhurta' },
+    provenance: 'documented',
+    source: 'Vedāṅga Jyotiṣa universal',
+    notes: '30 muhūrtas = 60 nāḍikās = 1 full day.',
+  },
+];
 
 // ─── Day Reckoning Conventions ───────────────────────────────────────────────
 

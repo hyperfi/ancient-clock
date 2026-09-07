@@ -12,6 +12,10 @@ import {
   modernToTraditional, 
   traditionalToModern, 
   formatModernTime, 
+  secondsToTraditionalTime,
+  secondsToVedangaTime,
+  vedangaTimeToSeconds,
+  secondsToGurvaksharas,
   type DualTime, 
   type DayReckoning 
 } from '@/lib/time';
@@ -39,16 +43,28 @@ export default function MeasureTimePage() {
   const [tradG, setTradG] = useState("0");
   const [tradV, setTradV] = useState("0");
   const [tradP, setTradP] = useState("0");
+  const [tradGurv, setTradGurv] = useState("0");
+  const [vedangaN, setVedangaN] = useState("0");
+  const [vedangaK, setVedangaK] = useState("0");
+  const [vedangaKas, setVedangaKas] = useState("0");
+  const [subSecondTime, setSubSecondTime] = useState<number>(() => {
+    const now = new Date();
+    return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds() + now.getMilliseconds() / 1000;
+  });
 
   useEffect(() => {
     if (!isRealtime) return;
     const interval = setInterval(() => {
       const now = new Date();
+      const sec = now.getSeconds();
+      const totalS = now.getHours() * 3600 + now.getMinutes() * 60 + sec;
+      const ms = now.getMilliseconds();
+      setSubSecondTime(totalS + ms / 1000);
       setTimeState(modernToTraditional(
-        { hours: now.getHours(), minutes: now.getMinutes(), seconds: now.getSeconds() },
+        { hours: now.getHours(), minutes: now.getMinutes(), seconds: sec },
         dayReckoning
       ));
-    }, 1000);
+    }, 100);
     return () => clearInterval(interval);
   }, [isRealtime, dayReckoning]);
 
@@ -58,6 +74,12 @@ export default function MeasureTimePage() {
       setTradG(Math.floor(timeState.traditional.ghatikas).toString());
       setTradV(Math.floor(timeState.traditional.vinadis).toString());
       setTradP(Math.floor(timeState.traditional.pranas).toString());
+      const gAksh = secondsToGurvaksharas(timeState.totalSeconds);
+      setTradGurv(gAksh.inPrana.toString());
+      const vT = secondsToVedangaTime(timeState.totalSeconds);
+      setVedangaN(vT.nadikas.toString());
+      setVedangaK(vT.kalas.toString());
+      setVedangaKas(vT.kasthas.toString());
     }
   }, [timeState, isRealtime]);
 
@@ -75,28 +97,69 @@ export default function MeasureTimePage() {
         setTradG(Math.floor(newTime.traditional.ghatikas).toString());
         setTradV(Math.floor(newTime.traditional.vinadis).toString());
         setTradP(Math.floor(newTime.traditional.pranas).toString());
+        setTradGurv(Math.floor(newTime.traditional.fractionalPranas * 10).toString());
+        const vT = secondsToVedangaTime(newTime.totalSeconds);
+        setVedangaN(vT.nadikas.toString());
+        setVedangaK(vT.kalas.toString());
+        setVedangaKas(vT.kasthas.toString());
       }
     }
   };
 
-  const handleTraditionalInputChange = (type: 'g' | 'v' | 'p', val: string) => {
+  const handleTraditionalInputChange = (type: 'g' | 'v' | 'p' | 'gurv', val: string) => {
     if (type === 'g') setTradG(val);
     if (type === 'v') setTradV(val);
     if (type === 'p') setTradP(val);
+    if (type === 'gurv') setTradGurv(val);
 
     const g = parseInt(type === 'g' ? val : tradG, 10) || 0;
     const v = parseInt(type === 'v' ? val : tradV, 10) || 0;
     const p = parseInt(type === 'p' ? val : tradP, 10) || 0;
+    const gurv = parseInt(type === 'gurv' ? val : tradGurv, 10) || 0;
 
-    const newTime = traditionalToModern({ ghatikas: g, vinadis: v, pranas: p, fractionalPranas: 0 }, dayReckoning);
+    const newTime = traditionalToModern({
+      ghatikas: g,
+      vinadis: v,
+      pranas: p,
+      fractionalPranas: Math.min(9, Math.max(0, gurv)) / 10
+    }, dayReckoning);
     setTimeState(newTime);
     setModernStr(formatModernTime(newTime.modern));
+    const vT = secondsToVedangaTime(newTime.totalSeconds);
+    setVedangaN(vT.nadikas.toString());
+    setVedangaK(vT.kalas.toString());
+    setVedangaKas(vT.kasthas.toString());
+  };
+
+  const handleVedangaInputChange = (type: 'n' | 'k' | 'kas', val: string) => {
+    if (type === 'n') setVedangaN(val);
+    if (type === 'k') setVedangaK(val);
+    if (type === 'kas') setVedangaKas(val);
+
+    const n = Math.min(59, Math.max(0, parseInt(type === 'n' ? val : vedangaN, 10) || 0));
+    const k = Math.min(9, Math.max(0, parseInt(type === 'k' ? val : vedangaK, 10) || 0));
+    const kas = Math.min(123, Math.max(0, parseInt(type === 'kas' ? val : vedangaKas, 10) || 0));
+
+    const totalS = vedangaTimeToSeconds({ nadikas: n, kalas: k, kasthas: kas });
+    const trad = secondsToTraditionalTime(totalS);
+    const newTime = traditionalToModern(trad, dayReckoning);
+    setTimeState(newTime);
+    setModernStr(formatModernTime(newTime.modern));
+    setTradG(Math.floor(trad.ghatikas).toString());
+    setTradV(Math.floor(trad.vinadis).toString());
+    setTradP(Math.floor(trad.pranas).toString());
+    setTradGurv(Math.floor(trad.fractionalPranas * 10).toString());
   };
 
   const handleDayReckoningChange = (reckoning: DayReckoning) => {
     setDayReckoning(reckoning);
     if (!isRealtime) {
-      setTimeState(modernToTraditional(timeState.modern, reckoning));
+      const newTime = modernToTraditional(timeState.modern, reckoning);
+      setTimeState(newTime);
+      const vT = secondsToVedangaTime(newTime.totalSeconds);
+      setVedangaN(vT.nadikas.toString());
+      setVedangaK(vT.kalas.toString());
+      setVedangaKas(vT.kasthas.toString());
     }
   };
 
@@ -106,6 +169,15 @@ export default function MeasureTimePage() {
   const currentVinadis = timeState.traditional.vinadis % 60;
   const waterBowlFillRatio = currentVinadis / 60;
   const secondsToNextSink = Math.max(0, Math.round((60 - currentVinadis) * 24));
+
+  // Vedāṅga Jyotiṣa Units
+  const currentVedanga = secondsToVedangaTime(timeState.totalSeconds);
+
+  // Gurvakṣara Acoustic Counts (1 syllable = 0.4s; 60 syllables = 1 vināḍī)
+  const currentTotalSeconds = isRealtime
+    ? (dayReckoning === 'audayika' ? (subSecondTime - 6 * 3600 + 86400) % 86400 : subSecondTime)
+    : timeState.totalSeconds;
+  const gurvaksharas = secondsToGurvaksharas(currentTotalSeconds);
 
   return (
     <ModuleLayout
@@ -120,7 +192,12 @@ export default function MeasureTimePage() {
               <p className="text-xs text-stone-500 dark:text-stone-400">Synchronized to system clock</p>
             </div>
             <button
-              onClick={() => setIsRealtime(!isRealtime)}
+              onClick={() => {
+                if (isRealtime) {
+                  setTradGurv(gurvaksharas.inPrana.toString());
+                }
+                setIsRealtime(!isRealtime);
+              }}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 isRealtime 
                   ? 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50' 
@@ -152,79 +229,177 @@ export default function MeasureTimePage() {
                 />
               </div>
 
-              {/* Arrow */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-stone-800 rounded-full p-1.5 border border-stone-200 dark:border-stone-700 z-10 shadow-sm text-stone-400">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M7 10L12 15L17 10" />
-                  <path d="M7 14L12 9L17 14" />
-                </svg>
-              </div>
-
-              {/* Traditional Side */}
-              <div className="bg-stone-50 dark:bg-stone-900/70 p-4 rounded-xl border border-stone-200 dark:border-stone-800 flex flex-col gap-2">
-                <label className="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Traditional Siddhāntic Units</label>
-                <div className="flex gap-2 items-center justify-center">
-                  <div className="flex flex-col items-center">
-                    <input 
-                      type="number" 
-                      value={tradG}
-                      onChange={(e) => handleTraditionalInputChange('g', e.target.value)}
-                      disabled={isRealtime}
-                      className="w-16 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg px-2 py-2 text-center text-lg font-mono focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 disabled:opacity-50"
-                      min="0" max="59"
-                    />
-                    <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400 mt-1">ghaṭikā</span>
-                  </div>
-                  <span className="text-stone-400 font-bold">:</span>
-                  <div className="flex flex-col items-center">
-                    <input 
-                      type="number" 
-                      value={tradV}
-                      onChange={(e) => handleTraditionalInputChange('v', e.target.value)}
-                      disabled={isRealtime}
-                      className="w-16 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg px-2 py-2 text-center text-lg font-mono focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 disabled:opacity-50"
-                      min="0" max="59"
-                    />
-                    <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400 mt-1">vināḍī</span>
-                  </div>
-                  <span className="text-stone-400 font-bold">:</span>
-                  <div className="flex flex-col items-center">
-                    <input 
-                      type="number" 
-                      value={tradP}
-                      onChange={(e) => handleTraditionalInputChange('p', e.target.value)}
-                      disabled={isRealtime}
-                      className="w-16 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg px-2 py-2 text-center text-lg font-mono focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 disabled:opacity-50"
-                      min="0" max="5"
-                    />
-                    <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400 mt-1">prāṇa</span>
-                  </div>
+              {/* Conversion Flow Indicator between cards (in-flow, never blocks title) */}
+              <div className="flex justify-center -my-2 z-10 pointer-events-none">
+                <div className="bg-white dark:bg-stone-800 rounded-full p-1.5 border border-stone-200 dark:border-stone-700 shadow-xs text-stone-400">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M7 10L12 15L17 10" />
+                    <path d="M7 14L12 9L17 14" />
+                  </svg>
                 </div>
               </div>
+
+              {/* Traditional / Vedic Side */}
+              {convention === 'siddhanta' ? (
+                <div className="bg-stone-50 dark:bg-stone-900/70 p-4 rounded-xl border border-stone-200 dark:border-stone-800 flex flex-col gap-2.5">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Traditional Siddhāntic Units</label>
+                    <span className="text-[10px] font-mono text-amber-700 dark:text-amber-400 bg-amber-100/70 dark:bg-amber-950/50 px-1.5 py-0.5 rounded font-medium">60-base</span>
+                  </div>
+                  <div className="flex gap-1.5 items-center justify-center">
+                    <div className="flex flex-col items-center">
+                      <input 
+                        type="number" 
+                        value={tradG}
+                        onChange={(e) => handleTraditionalInputChange('g', e.target.value)}
+                        disabled={isRealtime}
+                        className="w-14 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg px-1 py-2 text-center text-base font-mono focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 disabled:opacity-50"
+                        min="0" max="59"
+                      />
+                      <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400 mt-1">ghaṭikā</span>
+                    </div>
+                    <span className="text-stone-400 font-bold">:</span>
+                    <div className="flex flex-col items-center">
+                      <input 
+                        type="number" 
+                        value={tradV}
+                        onChange={(e) => handleTraditionalInputChange('v', e.target.value)}
+                        disabled={isRealtime}
+                        className="w-14 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg px-1 py-2 text-center text-base font-mono focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 disabled:opacity-50"
+                        min="0" max="59"
+                      />
+                      <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400 mt-1">vināḍī</span>
+                    </div>
+                    <span className="text-stone-400 font-bold">:</span>
+                    <div className="flex flex-col items-center">
+                      <input 
+                        type="number" 
+                        value={tradP}
+                        onChange={(e) => handleTraditionalInputChange('p', e.target.value)}
+                        disabled={isRealtime}
+                        className="w-14 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg px-1 py-2 text-center text-base font-mono focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 disabled:opacity-50"
+                        min="0" max="5"
+                      />
+                      <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400 mt-1">prāṇa</span>
+                    </div>
+                    <span className="text-stone-400 font-bold">:</span>
+                    <div className="flex flex-col items-center">
+                      <input 
+                        type="number" 
+                        value={isRealtime ? gurvaksharas.inPrana : tradGurv}
+                        onChange={(e) => handleTraditionalInputChange('gurv', e.target.value)}
+                        disabled={isRealtime}
+                        className="w-14 bg-white dark:bg-stone-900 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 rounded-lg px-1 py-2 text-center text-base font-mono focus:border-amber-600 focus:ring-1 focus:ring-amber-600 disabled:opacity-50"
+                        min="0" max="9"
+                      />
+                      <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400 mt-1 font-serif">gurvakṣara</span>
+                    </div>
+                  </div>
+
+                  {/* Gurvakṣara acoustic counter directly inside traditional unit time */}
+                  <div className="flex items-center justify-between pt-2 border-t border-stone-200/80 dark:border-stone-800 text-[11px]">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      <span className="font-serif font-semibold text-stone-700 dark:text-stone-300">Gurvakṣara Counter:</span>
+                    </div>
+                    <span className="font-mono font-bold text-amber-600 dark:text-amber-400 tabular-nums">
+                      {gurvaksharas.inVinadi} / 60 <span className="text-[10px] font-normal text-stone-400 font-sans">({gurvaksharas.inPrana + 1}/10 syllable · 0.4s)</span>
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-stone-50 dark:bg-stone-900/70 p-4 rounded-xl border border-stone-200 dark:border-stone-800 flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Vedāṅga Jyotiṣa Units</label>
+                    <span className="text-[10px] font-mono text-indigo-700 dark:text-indigo-400 bg-indigo-100/70 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded font-medium">Vedic System</span>
+                  </div>
+                  <div className="flex gap-2 items-center justify-center">
+                    <div className="flex flex-col items-center">
+                      <input 
+                        type="number" 
+                        value={vedangaN}
+                        onChange={(e) => handleVedangaInputChange('n', e.target.value)}
+                        disabled={isRealtime}
+                        className="w-16 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg px-2 py-2 text-center text-lg font-mono focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 disabled:opacity-50"
+                        min="0" max="59"
+                      />
+                      <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400 mt-1">nāḍikā</span>
+                    </div>
+                    <span className="text-stone-400 font-bold">:</span>
+                    <div className="flex flex-col items-center">
+                      <input 
+                        type="number" 
+                        value={vedangaK}
+                        onChange={(e) => handleVedangaInputChange('k', e.target.value)}
+                        disabled={isRealtime}
+                        className="w-16 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg px-2 py-2 text-center text-lg font-mono focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 disabled:opacity-50"
+                        min="0" max="9"
+                      />
+                      <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400 mt-1">kalā</span>
+                    </div>
+                    <span className="text-stone-400 font-bold">:</span>
+                    <div className="flex flex-col items-center">
+                      <input 
+                        type="number" 
+                        value={vedangaKas}
+                        onChange={(e) => handleVedangaInputChange('kas', e.target.value)}
+                        disabled={isRealtime}
+                        className="w-16 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg px-2 py-2 text-center text-lg font-mono focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 disabled:opacity-50"
+                        min="0" max="123"
+                      />
+                      <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400 mt-1">kāṣṭhā</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Unit Breakdown */}
-          <div className="bg-stone-50 dark:bg-stone-900/70 p-4 rounded-xl border border-stone-200 dark:border-stone-800">
-            <div className="flex justify-between items-start mb-2">
-              <h4 className="text-xs font-semibold text-stone-900 dark:text-stone-100 uppercase tracking-wider">Metrological Hierarchy</h4>
-              <ProvenanceLabel type="documented" />
+          {convention === 'siddhanta' ? (
+            <div className="bg-stone-50 dark:bg-stone-900/70 p-4 rounded-xl border border-stone-200 dark:border-stone-800">
+              <div className="flex justify-between items-start mb-2">
+                <h4 className="text-xs font-semibold text-stone-900 dark:text-stone-100 uppercase tracking-wider">Siddhānta Metrology</h4>
+                <ProvenanceLabel type="documented" />
+              </div>
+              <div className="text-xs text-stone-700 dark:text-stone-300 font-mono bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-3 rounded-lg space-y-1.5">
+                <p>1 Ahorātra (Day) = 60 ghaṭikā = 30 muhūrta</p>
+                <p>1 ghaṭikā = 60 vināḍī = 24 minutes</p>
+                <p>1 vināḍī = 6 prāṇa = 24 seconds</p>
+                <p>1 prāṇa (breath) = 10 gurvakṣara = 4 seconds</p>
+              </div>
+              <div className="mt-3 flex justify-end">
+                <SourceTooltip 
+                  source="Sūryasiddhānta"
+                  chapter="14"
+                  author="Various"
+                  note="Standard sexagesimal time divisions documented across major siddhāntic texts including Āryabhaṭīya and Siddhānta Śiromaṇi."
+                />
+              </div>
             </div>
-            <div className="text-xs text-stone-700 dark:text-stone-300 font-mono bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-3 rounded-lg space-y-1.5">
-              <p>1 Ahorātra (Day) = 60 ghaṭikā = 30 muhūrta</p>
-              <p>1 ghaṭikā = 60 vināḍī = 24 minutes</p>
-              <p>1 vināḍī = 6 prāṇa = 24 seconds</p>
-              <p>1 prāṇa (breath) = 10 gurvakṣara = 4 seconds</p>
+          ) : (
+            <div className="bg-stone-50 dark:bg-stone-900/70 p-4 rounded-xl border border-stone-200 dark:border-stone-800">
+              <div className="flex justify-between items-start mb-2">
+                <h4 className="text-xs font-semibold text-stone-900 dark:text-stone-100 uppercase tracking-wider">Vedāṅga Jyotiṣa Metrology</h4>
+                <ProvenanceLabel type="documented" />
+              </div>
+              <div className="text-xs text-stone-700 dark:text-stone-300 font-mono bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-3 rounded-lg space-y-1.5">
+                <p>1 Ahorātra (Day) = 30 muhūrta = 60 nāḍikā</p>
+                <p>1 muhūrta = 2 nāḍikā = 48 minutes</p>
+                <p>1 nāḍikā = 10 kalā = 24 minutes (1 kalā = 144s)</p>
+                <p>1 kalā = 124 kāṣṭhā ≈ 1.161 seconds</p>
+                <p>1 kāṣṭhā = 10 mātrā ≈ 0.116s (short syllable/blink)</p>
+              </div>
+              <div className="mt-3 flex justify-end">
+                <SourceTooltip 
+                  source="Vedāṅga Jyotiṣa"
+                  chapter="Yājuṣa 7–8 / Ārcha 8"
+                  author="Lagadha"
+                  note="Ancient Vedic sacrificial calendar metric (~1st millennium BCE) using non-sexagesimal subdivisions prior to Siddhāntic astronomy."
+                />
+              </div>
             </div>
-            <div className="mt-3 flex justify-end">
-              <SourceTooltip 
-                source="Sūryasiddhānta"
-                chapter="14"
-                author="Various"
-                note="Standard time divisions documented across major siddhāntic texts including Āryabhaṭīya and Siddhānta Śiromaṇi."
-              />
-            </div>
-          </div>
+          )}
         </div>
       }
     >
@@ -321,17 +496,33 @@ export default function MeasureTimePage() {
                 </g>
 
                 {/* Dial Face Readouts - Positioned with generous clearance around center pivot (50, 50) */}
-                {/* Upper Quadrant: Ghaṭikā number */}
+                {/* Upper Quadrant: Traditional Reading */}
                 <g className="select-none pointer-events-none">
-                  <text x="50" y="34" textAnchor="middle" fill="#D97706" fontSize="4.5" fontWeight="bold" className="font-serif">
-                    {currentGhatikaNum} ghaṭikā
-                  </text>
+                  {convention === 'siddhanta' ? (
+                    <>
+                      <text x="50" y="33" textAnchor="middle" fill="#D97706" fontSize="4.5" fontWeight="bold" className="font-serif">
+                        {currentGhatikaNum} ghaṭikā
+                      </text>
+                      <text x="50" y="38" textAnchor="middle" fill="currentColor" fontSize="2.5" className="text-stone-500 dark:text-stone-400 font-mono">
+                        {Math.floor(currentVinadis)} vināḍī · {Math.floor(timeState.traditional.pranas)} prāṇa
+                      </text>
+                    </>
+                  ) : (
+                    <>
+                      <text x="50" y="33" textAnchor="middle" fill="#D97706" fontSize="4.2" fontWeight="bold" className="font-serif">
+                        {currentVedanga.nadikas} nāḍikā · {currentVedanga.kalas} kalā
+                      </text>
+                      <text x="50" y="38" textAnchor="middle" fill="currentColor" fontSize="2.4" className="text-stone-500 dark:text-stone-400 font-mono">
+                        {currentVedanga.kasthas} kāṣṭhā (Muhūrta #{currentVedanga.muhurtas + 1})
+                      </text>
+                    </>
+                  )}
                   
                   {/* Lower Quadrant: Modern Clock & Epoch Label */}
-                  <text x="50" y="67" textAnchor="middle" fill="currentColor" fontSize="5" fontWeight="bold" fontFamily="monospace" className="text-stone-900 dark:text-stone-100">
+                  <text x="50" y="66" textAnchor="middle" fill="currentColor" fontSize="4.8" fontWeight="bold" fontFamily="monospace" className="text-stone-900 dark:text-stone-100">
                     {formatModernTime(timeState.modern)}
                   </text>
-                  <text x="50" y="73" textAnchor="middle" fill="currentColor" fontSize="2.8" className="text-stone-500 dark:text-stone-400 font-sans">
+                  <text x="50" y="72" textAnchor="middle" fill="currentColor" fontSize="2.8" className="text-stone-500 dark:text-stone-400 font-sans">
                     {dayReckoning === 'audayika' ? 'Sunrise Epoch' : 'Midnight Epoch'}
                   </text>
                 </g>
@@ -339,13 +530,20 @@ export default function MeasureTimePage() {
             </div>
 
             {/* Clear Digital Readout Display Card */}
-            <div className="mt-4 flex flex-col items-center gap-0.5 px-5 py-2 bg-stone-50/90 dark:bg-stone-900/60 rounded-xl border border-stone-200 dark:border-stone-800 text-center select-none shadow-xs">
-              <span className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider">
-                Current Time Reading
-              </span>
+            <div className="mt-4 flex flex-col items-center gap-1 px-5 py-2.5 bg-stone-50/90 dark:bg-stone-900/60 rounded-xl border border-stone-200 dark:border-stone-800 text-center select-none shadow-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider">
+                  Current Time Reading
+                </span>
+                <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-stone-200/80 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
+                  {convention === 'siddhanta' ? 'Siddhānta Convention' : 'Vedāṅga Jyotiṣa'}
+                </span>
+              </div>
               <div className="flex items-baseline gap-2.5 mt-0.5">
                 <span className="text-lg font-bold font-serif text-[#D97706]">
-                  {currentGhatikaNum} ghaṭikā
+                  {convention === 'siddhanta' 
+                    ? `${currentGhatikaNum} ghaṭikā · ${Math.floor(currentVinadis)} vināḍī` 
+                    : `${currentVedanga.nadikas} nāḍikā · ${currentVedanga.kalas} kalā · ${currentVedanga.kasthas} kāṣṭhā`}
                 </span>
                 <span className="text-stone-400 text-xs font-mono">•</span>
                 <span className="text-sm font-mono font-bold text-stone-900 dark:text-stone-100">
@@ -471,6 +669,8 @@ export default function MeasureTimePage() {
                 <span>Next Sink in ~{Math.floor(secondsToNextSink / 60)}m {secondsToNextSink % 60}s</span>
               </div>
             </div>
+
+
 
             {/* Link to Full Laboratory */}
             <Link

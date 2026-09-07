@@ -1,8 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { ModuleLayout, ProvenanceLabel, SourceTooltip } from '@/components/ui';
 import { getTithiInfo, computeElongation, timeToNextTithi, isEclipsePossible } from '@/lib/lunar';
+
+const MoonOrbit3D = dynamic(
+  () => import('@/components/three/MoonOrbit3D').then((m) => m.MoonOrbit3D),
+  { ssr: false }
+);
 
 const MOON_DAILY_MOTION = 13.17639;
 const SUN_DAILY_MOTION = 0.98565;
@@ -11,6 +17,7 @@ const NODE_DAILY_MOTION = -0.05295; // Retrograde
 export default function MoonCalendarPage() {
   const [timeDays, setTimeDays] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [viewMode, setViewMode] = useState<'3d' | '2d'>('3d');
   
   useEffect(() => {
     let animationFrameId: number;
@@ -67,8 +74,8 @@ export default function MoonCalendarPage() {
   const getPos = (angle: number, radius: number) => {
     const rad = (angle * Math.PI) / 180;
     return {
-      x: cx + radius * Math.cos(rad),
-      y: cy - radius * Math.sin(rad)
+      x: Number((cx + radius * Math.cos(rad)).toFixed(2)),
+      y: Number((cy - radius * Math.sin(rad)).toFixed(2))
     };
   };
 
@@ -94,7 +101,7 @@ export default function MoonCalendarPage() {
     const el = (tithiNum - 0.5) * 12; // 0 to 360
     const isWaxing = el < 180;
     const cosAngle = Math.cos((el * Math.PI) / 180);
-    const rx = Math.max(0.5, rad * Math.abs(cosAngle));
+    const rx = Number(Math.max(0.5, rad * Math.abs(cosAngle)).toFixed(2));
     const sweep = (isWaxing && cosAngle < 0) || (!isWaxing && cosAngle >= 0) ? 1 : 0;
 
     return (
@@ -128,103 +135,153 @@ export default function MoonCalendarPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           
           {/* ========================================================================= */}
-          {/* 1. INTERACTIVE ORBITAL TITHI SVG CANVAS                                   */}
+          {/* 1. INTERACTIVE ORBITAL TITHI VISUALIZATION (3D / 2D)                       */}
           {/* ========================================================================= */}
-          <div className="bg-white dark:bg-[#141210] rounded-2xl p-6 shadow-sm border border-stone-200 dark:border-stone-800 flex flex-col items-center">
-            <svg viewBox="0 0 500 500" className="w-full h-auto max-w-md select-none">
-              <defs>
-                <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#D97706" />
-                </marker>
-              </defs>
+          <div className="bg-white dark:bg-[#141210] rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 flex flex-col items-center overflow-hidden">
 
-              {/* 30 Tithi Radial Wedge Sectors */}
-              {Array.from({ length: 30 }).map((_, i) => {
-                const startAngle = sunLon + i * 12;
-                const endAngle = sunLon + (i + 1) * 12;
-                const isCurrent = i + 1 === tithiInfo.number;
-                
-                const p1 = getPos(startAngle, r);
-                const p2 = getPos(endAngle, r);
-                
-                return (
-                  <path 
-                    key={i}
-                    d={`M ${cx} ${cy} L ${p1.x} ${p1.y} A ${r} ${r} 0 0 0 ${p2.x} ${p2.y} Z`}
-                    className={`transition-colors duration-300 ${
-                      isCurrent 
-                        ? 'fill-amber-200 dark:fill-amber-950/80 stroke-[#D97706]' 
-                        : (i % 2 === 0 
-                          ? 'fill-stone-100/90 dark:fill-stone-900/90 stroke-stone-200 dark:stroke-stone-800' 
-                          : 'fill-stone-50/70 dark:fill-stone-900/40 stroke-stone-200 dark:stroke-stone-800')
-                    }`}
-                    strokeWidth={isCurrent ? "2" : "0.5"}
+            {/* ── 2D / 3D Toggle Bar ── */}
+            <div className="w-full flex items-center justify-between px-4 pt-4 pb-2">
+              <span className="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">
+                {viewMode === '3d' ? 'Interactive 3D Orbit' : '2D Orbital Diagram'}
+              </span>
+              <div className="flex rounded-lg overflow-hidden bg-stone-100 dark:bg-stone-800 p-0.5 border border-stone-200 dark:border-stone-700">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('3d')}
+                  className={`px-2.5 py-1 rounded text-xs font-semibold transition-all flex items-center gap-1 ${
+                    viewMode === '3d'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100'
+                  }`}
+                >
+                  <span>🌐</span> 3D
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('2d')}
+                  className={`px-2.5 py-1 rounded text-xs font-semibold transition-all flex items-center gap-1 ${
+                    viewMode === '2d'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100'
+                  }`}
+                >
+                  <span>📐</span> 2D
+                </button>
+              </div>
+            </div>
+
+            {/* ── 3D View ── */}
+            {viewMode === '3d' && (
+              <div className="w-full aspect-square max-h-[520px]">
+                <MoonOrbit3D
+                  sunLon={sunLon}
+                  moonLon={moonLon}
+                  nodeLon={nodeLon}
+                  elongation={elongation}
+                  tithiNumber={tithiInfo.number}
+                />
+              </div>
+            )}
+
+            {/* ── 2D SVG View (original diagram, preserved exactly) ── */}
+            {viewMode === '2d' && (
+              <div className="p-4 w-full flex flex-col items-center">
+                <svg viewBox="0 0 500 500" className="w-full h-auto max-w-md select-none">
+                  <defs>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 0 L 10 5 L 0 10 z" fill="#D97706" />
+                    </marker>
+                  </defs>
+
+                  {/* 30 Tithi Radial Wedge Sectors */}
+                  {Array.from({ length: 30 }).map((_, i) => {
+                    const startAngle = sunLon + i * 12;
+                    const endAngle = sunLon + (i + 1) * 12;
+                    const isCurrent = i + 1 === tithiInfo.number;
+                    
+                    const p1 = getPos(startAngle, r);
+                    const p2 = getPos(endAngle, r);
+                    
+                    return (
+                      <path 
+                        key={i}
+                        d={`M ${cx} ${cy} L ${p1.x} ${p1.y} A ${r} ${r} 0 0 0 ${p2.x} ${p2.y} Z`}
+                        className={`transition-colors duration-300 ${
+                          isCurrent 
+                            ? 'fill-amber-200 dark:fill-amber-950/80 stroke-[#D97706]' 
+                            : (i % 2 === 0 
+                              ? 'fill-stone-100/90 dark:fill-stone-900/90 stroke-stone-200 dark:stroke-stone-800' 
+                              : 'fill-stone-50/70 dark:fill-stone-900/40 stroke-stone-200 dark:stroke-stone-800')
+                        }`}
+                        strokeWidth={isCurrent ? "2" : "0.5"}
+                      />
+                    );
+                  })}
+
+                  {/* Orbital guide track */}
+                  <circle cx={cx} cy={cy} r={r} fill="none" stroke="currentColor" className="text-stone-300 dark:text-stone-700" strokeWidth="1" strokeDasharray="4 4" opacity="0.6" />
+
+                  {/* Central Earth (Bhū) */}
+                  <circle cx={cx} cy={cy} r={10} fill="#2563EB" stroke="#60A5FA" strokeWidth="1.5" />
+                  <text x={cx} y={cy + 22} textAnchor="middle" fontSize="10" fill="#2563EB" fontWeight="600">Earth (Bhū)</text>
+
+                  {/* Sun Ray Direction */}
+                  <line 
+                    x1={cx} y1={cy} 
+                    x2={sunPos.x} y2={sunPos.y} 
+                    stroke="#D97706" 
+                    strokeWidth="2" 
+                    strokeDasharray="4 2"
                   />
-                );
-              })}
+                  <circle cx={sunPos.x} cy={sunPos.y} r={12} fill="#D97706" />
+                  <text x={sunPos.x + 18} y={sunPos.y + 4} fontSize="12" fill="#D97706" fontWeight="600">Sun Vector</text>
 
-              {/* Orbital guide track */}
-              <circle cx={cx} cy={cy} r={r} fill="none" stroke="currentColor" className="text-stone-300 dark:text-stone-700" strokeWidth="1" strokeDasharray="4 4" opacity="0.6" />
-
-              {/* Central Earth (Bhū) */}
-              <circle cx={cx} cy={cy} r={10} fill="#2563EB" stroke="#60A5FA" strokeWidth="1.5" />
-              <text x={cx} y={cy + 22} textAnchor="middle" fontSize="10" fill="#2563EB" fontWeight="600">Earth (Bhū)</text>
-
-              {/* Sun Ray Direction */}
-              <line 
-                x1={cx} y1={cy} 
-                x2={sunPos.x} y2={sunPos.y} 
-                stroke="#D97706" 
-                strokeWidth="2" 
-                strokeDasharray="4 2"
-              />
-              <circle cx={sunPos.x} cy={sunPos.y} r={12} fill="#D97706" />
-              <text x={sunPos.x + 18} y={sunPos.y + 4} fontSize="12" fill="#D97706" fontWeight="600">Sun Vector</text>
-
-              {/* Elongation Arc */}
-              <path
-                d={`M ${getPos(sunLon, 42).x} ${getPos(sunLon, 42).y} A 42 42 0 ${elongation > 180 ? 1 : 0} 0 ${getPos(moonLon, 42).x} ${getPos(moonLon, 42).y}`}
-                fill="none"
-                stroke="#4338CA"
-                strokeWidth="2.5"
-                opacity="0.8"
-              />
-
-              {/* Realistic Illuminated Moon Disk */}
-              <g transform={`translate(${moonPos.x}, ${moonPos.y})`}>
-                <circle cx="0" cy="0" r="13" fill="#1E293B" stroke="#94A3B8" strokeWidth="1" />
-                {/* Lit phase path */}
-                {elongation > 5 && elongation < 355 && (
+                  {/* Elongation Arc */}
                   <path
-                    d={`M 0 -13 A 13 13 0 0 ${elongation < 180 ? 1 : 0} 0 13 A ${Math.max(0.5, 13 * Math.abs(Math.cos((elongation * Math.PI) / 180)))} 13 0 0 ${
-                      (elongation < 180 && Math.cos((elongation * Math.PI) / 180) < 0) ||
-                      (elongation >= 180 && Math.cos((elongation * Math.PI) / 180) >= 0)
-                        ? 1
-                        : 0
-                    } 0 -13 Z`}
-                    fill="#F8FAFC"
+                    d={`M ${getPos(sunLon, 42).x} ${getPos(sunLon, 42).y} A 42 42 0 ${elongation > 180 ? 1 : 0} 0 ${getPos(moonLon, 42).x} ${getPos(moonLon, 42).y}`}
+                    fill="none"
+                    stroke="#4338CA"
+                    strokeWidth="2.5"
+                    opacity="0.8"
                   />
-                )}
-                {elongation >= 170 && elongation <= 190 && (
-                  <circle cx="0" cy="0" r="13" fill="#F8FAFC" />
-                )}
-                <text x="0" y="24" fontSize="10" fill="currentColor" className="text-stone-700 dark:text-stone-300 font-semibold" textAnchor="middle">
-                  Chandra
-                </text>
-              </g>
-              
-              {/* Lunar Nodes: Rāhu & Ketu */}
-              <g opacity="0.85">
-                <circle cx={nodePos.x} cy={nodePos.y} r="5" fill="#B91C1C" />
-                <text x={nodePos.x} y={nodePos.y - 9} textAnchor="middle" fontSize="10" fill="#B91C1C" fontWeight="bold">Rāhu</text>
-                
-                <circle cx={descNodePos.x} cy={descNodePos.y} r="5" fill="#B91C1C" />
-                <text x={descNodePos.x} y={descNodePos.y - 9} textAnchor="middle" fontSize="10" fill="#B91C1C" fontWeight="bold">Ketu</text>
-              </g>
-            </svg>
+
+                  {/* Realistic Illuminated Moon Disk */}
+                  <g transform={`translate(${moonPos.x}, ${moonPos.y})`}>
+                    <circle cx="0" cy="0" r="13" fill="#1E293B" stroke="#94A3B8" strokeWidth="1" />
+                    {/* Lit phase path */}
+                    {elongation > 5 && elongation < 355 && (
+                      <path
+                        d={`M 0 -13 A 13 13 0 0 ${elongation < 180 ? 1 : 0} 0 13 A ${Number(Math.max(0.5, 13 * Math.abs(Math.cos((elongation * Math.PI) / 180))).toFixed(2))} 13 0 0 ${
+                          (elongation < 180 && Math.cos((elongation * Math.PI) / 180) < 0) ||
+                          (elongation >= 180 && Math.cos((elongation * Math.PI) / 180) >= 0)
+                            ? 1
+                            : 0
+                        } 0 -13 Z`}
+                        fill="#F8FAFC"
+                      />
+                    )}
+                    {elongation >= 170 && elongation <= 190 && (
+                      <circle cx="0" cy="0" r="13" fill="#F8FAFC" />
+                    )}
+                    <text x="0" y="24" fontSize="10" fill="currentColor" className="text-stone-700 dark:text-stone-300 font-semibold" textAnchor="middle">
+                      Chandra
+                    </text>
+                  </g>
+                  
+                  {/* Lunar Nodes: Rāhu & Ketu */}
+                  <g opacity="0.85">
+                    <circle cx={nodePos.x} cy={nodePos.y} r="5" fill="#B91C1C" />
+                    <text x={nodePos.x} y={nodePos.y - 9} textAnchor="middle" fontSize="10" fill="#B91C1C" fontWeight="bold">Rāhu</text>
+                    
+                    <circle cx={descNodePos.x} cy={descNodePos.y} r="5" fill="#B91C1C" />
+                    <text x={descNodePos.x} y={descNodePos.y - 9} textAnchor="middle" fontSize="10" fill="#B91C1C" fontWeight="bold">Ketu</text>
+                  </g>
+                </svg>
+              </div>
+            )}
 
             {/* Time Slider & Playback Controls */}
-            <div className="w-full mt-6 space-y-3">
+            <div className="w-full px-6 pb-6 space-y-3">
               <div className="flex justify-between items-center text-sm font-medium text-stone-600 dark:text-stone-400">
                 <span className="font-mono">Simulated Time: Day {timeDays.toFixed(1)}</span>
                 <button 

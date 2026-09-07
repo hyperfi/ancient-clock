@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { ArmillarySphere } from '@/components/svg';
 
 export default function ObservePage() {
   const modules = [
@@ -244,56 +245,7 @@ export default function ObservePage() {
       description: 'Explore the full register of primary texts, critical editions, modern references, and the four strict provenance categories.',
       simulation: (
         <div className="w-full h-32 bg-stone-100/70 dark:bg-stone-900/80 rounded-lg flex items-center justify-center relative overflow-hidden border border-stone-200/60 dark:border-stone-800">
-          <svg viewBox="0 0 200 120" className="w-full h-full max-h-32 select-none">
-            {/* Armillary sphere concentric rotating rings centered at (100, 60) */}
-            <circle cx="100" cy="60" r="42" fill="none" stroke="#B87333" strokeWidth="1.8" />
-            
-            {/* Rotating Equatorial Ring around (100, 60) */}
-            <g>
-              <animateTransform
-                attributeName="transform"
-                type="rotate"
-                from="0 100 60"
-                to="360 100 60"
-                dur="18s"
-                repeatCount="indefinite"
-              />
-              <ellipse
-                cx="100"
-                cy="60"
-                rx="42"
-                ry="16"
-                fill="none"
-                stroke="#D97706"
-                strokeWidth="1.4"
-              />
-            </g>
-
-            {/* Rotating Ecliptic Ring counter-clockwise around (100, 60) */}
-            <g>
-              <animateTransform
-                attributeName="transform"
-                type="rotate"
-                from="0 100 60"
-                to="-360 100 60"
-                dur="22s"
-                repeatCount="indefinite"
-              />
-              <ellipse
-                cx="100"
-                cy="60"
-                rx="16"
-                ry="42"
-                fill="none"
-                stroke="#4338CA"
-                strokeWidth="1.4"
-                className="dark:stroke-indigo-400"
-              />
-            </g>
-
-            {/* Center celestial pivot */}
-            <circle cx="100" cy="60" r="4" fill="#1C1917" className="dark:fill-stone-200" />
-          </svg>
+          <ArmillarySphere size={105} interactive={false} />
         </div>
       ),
     },

@@ -7,6 +7,9 @@ import {
   traditionalTimeToSeconds,
   modernToTraditional,
   traditionalToModern,
+  secondsToVedangaTime,
+  vedangaTimeToSeconds,
+  secondsToGurvaksharas,
 } from '../src/lib/time/conversion';
 import {
   SECONDS_PER_DAY,
@@ -78,6 +81,51 @@ describe('Traditional Indian Time Conversion', () => {
     // Audayika: sunrise is 06:00:00, so 06:00:00 = 0 ghaṭikā
     const auda = modernToTraditional(modernTime, 'audayika', 6 * 3600);
     expect(auda.traditional.ghatikas).toBe(0);
+  });
+
+  it('converts seconds to Vedāṅga Jyotiṣa units correctly', () => {
+    // 0s = 0 nāḍikā, 0 kalā, 0 kāṣṭhā
+    const v0 = secondsToVedangaTime(0);
+    expect(v0.nadikas).toBe(0);
+    expect(v0.kalas).toBe(0);
+    expect(v0.kasthas).toBe(0);
+
+    // 1 nāḍikā = 1440s
+    const v1 = secondsToVedangaTime(1440);
+    expect(v1.nadikas).toBe(1);
+    expect(v1.kalas).toBe(0);
+
+    // 1 muhūrta = 2880s = 2 nāḍikās
+    const vMuhurta = secondsToVedangaTime(2880);
+    expect(vMuhurta.muhurtas).toBe(1);
+    expect(vMuhurta.nadikas).toBe(2);
+
+    // Roundtrip conversion
+    const recovered = vedangaTimeToSeconds(v1);
+    expect(recovered).toBeCloseTo(1440, 3);
+  });
+
+  it('computes correct gurvakṣara counts across prāṇa, vināḍī, and ghaṭikā', () => {
+    // 0 seconds = 0 gurvakṣaras
+    const g0 = secondsToGurvaksharas(0);
+    expect(g0.inPrana).toBe(0);
+    expect(g0.inVinadi).toBe(0);
+    expect(g0.inGhatika).toBe(0);
+
+    // 4 seconds = 1 prāṇa = 10 gurvakṣaras (so inside vināḍī: 10, in current prāṇa: 0)
+    const g4 = secondsToGurvaksharas(4);
+    expect(g4.inVinadi).toBe(10);
+    expect(g4.inPrana).toBe(0);
+
+    // 24 seconds = 1 vināḍī = 60 gurvakṣaras (in current vināḍī: 0, in ghaṭikā: 60)
+    const g24 = secondsToGurvaksharas(24);
+    expect(g24.inVinadi).toBe(0);
+    expect(g24.inGhatika).toBe(60);
+
+    // 1440 seconds = 1 ghaṭikā = 3600 gurvakṣaras
+    const gGhatika = secondsToGurvaksharas(1440);
+    expect(gGhatika.inGhatika).toBe(0);
+    expect(gGhatika.totalInDay).toBe(3600);
   });
 });
 

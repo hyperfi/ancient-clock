@@ -6,3 +6,4 @@ export * from './Horizon';
 export * from './MeasurementArc';
 export * from './AngleMarker';
 export * from './EclipseVisualization';
+export * from './ArmillarySphere';

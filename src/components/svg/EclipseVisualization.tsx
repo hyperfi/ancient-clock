@@ -11,6 +11,8 @@ export interface EclipseVisualizationProps {
   moonLatitudeDeg?: number;
   className?: string;
   isEclipse?: boolean;
+  viewMode?: 'sky' | 'chedyaka' | 'space';
+  onViewModeChange?: (mode: 'sky' | 'chedyaka' | 'space') => void;
 }
 
 export const EclipseVisualization: React.FC<EclipseVisualizationProps> = ({
@@ -22,8 +24,16 @@ export const EclipseVisualization: React.FC<EclipseVisualizationProps> = ({
   moonLatitudeDeg = 0,
   className = '',
   isEclipse = true,
+  viewMode: propViewMode,
+  onViewModeChange,
 }) => {
-  const [viewMode, setViewMode] = useState<'sky' | 'space'>('sky');
+  const [internalViewMode, setInternalViewMode] = useState<'sky' | 'chedyaka' | 'space'>('chedyaka');
+  const activeMode = propViewMode ?? internalViewMode;
+
+  const handleSetViewMode = (mode: 'sky' | 'chedyaka' | 'space') => {
+    setInternalViewMode(mode);
+    onViewModeChange?.(mode);
+  };
 
   // SVG dimensions
   const width = 640;
@@ -39,17 +49,17 @@ export const EclipseVisualization: React.FC<EclipseVisualizationProps> = ({
   if (p < 0.15) {
     contactStage = 'Pre-contact (Approaching)';
   } else if (p < 0.35) {
-    contactStage = 'First Contact (C1: Ingress)';
+    contactStage = 'First Contact (C1: Ingress / Sparśa)';
   } else if (p < 0.65) {
     if (kind === 'total' && (magnitude >= 1.0 || obscuration >= 0.98)) {
-      contactStage = 'Totality (C2 - Greatest - C3)';
+      contactStage = 'Totality (Nimīlana - Madhya - Unmīlana)';
     } else {
-      contactStage = 'Greatest Eclipse (Maximum Obscuration)';
+      contactStage = 'Greatest Eclipse (Madhya / Peak)';
     }
   } else if (p < 0.85) {
-    contactStage = 'Third Contact (C3: Egress)';
+    contactStage = 'Third Contact (C3: Egress / Unmīlana)';
   } else {
-    contactStage = 'Fourth Contact (C4: Final Separation)';
+    contactStage = 'Fourth Contact (C4: Release / Mokṣa)';
   }
 
   // Calculate coordinates for SKY VIEW
@@ -107,32 +117,43 @@ export const EclipseVisualization: React.FC<EclipseVisualizationProps> = ({
         <div className="flex rounded-lg bg-stone-900 p-0.5 border border-stone-800 text-xs font-medium">
           <button
             type="button"
-            onClick={() => setViewMode('sky')}
+            onClick={() => handleSetViewMode('chedyaka')}
             className={`px-3 py-1 rounded-md transition-all ${
-              viewMode === 'sky'
+              activeMode === 'chedyaka'
                 ? 'bg-amber-600 text-white shadow-sm font-semibold'
                 : 'text-stone-400 hover:text-stone-200'
             }`}
           >
-            🔭 Observer Sky View
+            📐 Chedyaka Projection (SS Ch.6)
           </button>
           <button
             type="button"
-            onClick={() => setViewMode('space')}
+            onClick={() => handleSetViewMode('sky')}
             className={`px-3 py-1 rounded-md transition-all ${
-              viewMode === 'space'
+              activeMode === 'sky'
                 ? 'bg-amber-600 text-white shadow-sm font-semibold'
                 : 'text-stone-400 hover:text-stone-200'
             }`}
           >
-            🪐 Orbital Alignment
+            🔭 Observer Sky
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSetViewMode('space')}
+            className={`px-3 py-1 rounded-md transition-all ${
+              activeMode === 'space'
+                ? 'bg-amber-600 text-white shadow-sm font-semibold'
+                : 'text-stone-400 hover:text-stone-200'
+            }`}
+          >
+            🪐 2D Ray Geometry
           </button>
         </div>
       </div>
 
       {/* Main Canvas Viewport */}
-      <div className="relative w-full h-72 sm:h-80 flex items-center justify-center select-none overflow-hidden">
-        {viewMode === 'sky' ? (
+      <div className="relative w-full h-80 sm:h-88 flex items-center justify-center select-none overflow-hidden">
+        {activeMode === 'sky' ? (
           // ==================== SKY VIEW ====================
           <svg
             viewBox={`0 0 ${width} ${height}`}
@@ -184,6 +205,19 @@ export const EclipseVisualization: React.FC<EclipseVisualizationProps> = ({
                 <stop offset="75%" stopColor="#7F1D1D" />
                 <stop offset="100%" stopColor="#450A0A" />
               </radialGradient>
+
+              {/* Custom Arrow Marker */}
+              <marker
+                id="arrowMarker"
+                viewBox="0 0 10 10"
+                refX="5"
+                refY="5"
+                markerWidth="5"
+                markerHeight="5"
+                orient="auto-start-reverse"
+              >
+                <path d="M 0 1 L 9 5 L 0 9 z" fill="#D97706" />
+              </marker>
             </defs>
 
             {/* Dynamic Sky Background */}
@@ -383,7 +417,6 @@ export const EclipseVisualization: React.FC<EclipseVisualizationProps> = ({
                 <line x1={cx} y1={cy - 8} x2={cx} y2={cy + 8} stroke="#7F1D1D" strokeWidth="1" />
 
                 {/* The Moon Disc traversing shadow */}
-                {/* Base Moon (Normal silvery/gray) */}
                 <circle
                   cx={lunarMoonX}
                   cy={lunarMoonY}
@@ -404,22 +437,6 @@ export const EclipseVisualization: React.FC<EclipseVisualizationProps> = ({
                     filter={isDeepTotality ? 'drop-shadow(0 0 12px rgba(220, 38, 38, 0.6))' : undefined}
                   />
                 )}
-
-                {/* Moon Maria patches texture */}
-                <circle
-                  cx={lunarMoonX - 6}
-                  cy={lunarMoonY - 4}
-                  r={6}
-                  fill="#000000"
-                  opacity="0.15"
-                />
-                <circle
-                  cx={lunarMoonX + 7}
-                  cy={lunarMoonY + 5}
-                  r={8}
-                  fill="#000000"
-                  opacity="0.12"
-                />
 
                 {/* Moon label */}
                 <text
@@ -456,21 +473,220 @@ export const EclipseVisualization: React.FC<EclipseVisualizationProps> = ({
                 </text>
               </g>
             )}
+          </svg>
+        ) : activeMode === 'chedyaka' ? (
+          // ==================== CHEDYAKA PROJECTION VIEW (SS Ch.6) ====================
+          <svg
+            viewBox="0 0 640 320"
+            className="w-full h-full"
+            preserveAspectRatio="xMidYMid meet"
+          >
+            {/* Dark Slate Astronomy Board Background */}
+            <rect width="640" height="320" fill="#08080f" />
 
-            {/* Custom Arrow Marker */}
-            <defs>
-              <marker
-                id="arrowMarker"
-                viewBox="0 0 10 10"
-                refX="5"
-                refY="5"
-                markerWidth="5"
-                markerHeight="5"
-                orient="auto-start-reverse"
-              >
-                <path d="M 0 1 L 9 5 L 0 9 z" fill="#D97706" />
-              </marker>
-            </defs>
+            {/* Geometry Construction on Left / Center */}
+            {(() => {
+              const geomCx = 230;
+              const geomCy = 160;
+              const shadowR = 64; // ~40'
+              const moonR = 25.6; // ~16'
+              const sumR = shadowR + moonR; // 89.6px (~56')
+              const diffR = Math.max(0, shadowR - moonR); // 38.4px (~24')
+              const latOffset = Number(((moonLatitudeDeg || 0) * 20).toFixed(2));
+              const trackY = geomCy - latOffset;
+              const sthitSq = Math.pow(sumR, 2) - Math.pow(latOffset, 2);
+              const sthitBase = sthitSq > 0 ? Math.sqrt(sthitSq) : 0;
+              const curMoonX = geomCx + (p - 0.5) * 2 * 140;
+
+              return (
+                <g>
+                  {/* Subtle Board Axes */}
+                  <line x1="30" y1={geomCy} x2="430" y2={geomCy} stroke="#1e293b" strokeWidth="1" strokeDasharray="3 3" />
+                  <line x1={geomCx} y1="20" x2={geomCx} y2="300" stroke="#1e293b" strokeWidth="1" strokeDasharray="3 3" />
+
+                  {/* Cardinal Compass Ticks */}
+                  <text x={geomCx} y="15" fontSize="8.5" fill="#475569" textAnchor="middle" fontFamily="sans-serif">North (Uttara)</text>
+                  <text x={geomCx} y="312" fontSize="8.5" fill="#475569" textAnchor="middle" fontFamily="sans-serif">South (Dakṣiṇa)</text>
+                  <text x="35" y={geomCy - 5} fontSize="8.5" fill="#475569" textAnchor="start" fontFamily="sans-serif">East (Pūrva)</text>
+                  <text x="425" y={geomCy - 5} fontSize="8.5" fill="#475569" textAnchor="end" fontFamily="sans-serif">West (Paścima)</text>
+
+                  {/* Outer Contact Circle (Māna-aikya-ardha: rs + rm = 56') */}
+                  <circle
+                    cx={geomCx}
+                    cy={geomCy}
+                    r={sumR}
+                    fill="none"
+                    stroke="#D97706"
+                    strokeWidth="1.2"
+                    strokeDasharray="4 4"
+                    opacity="0.55"
+                  />
+
+                  {/* Totality Limit Circle (Māna-viśleṣa-ardha: rs - rm = 24') */}
+                  {diffR > 0 && (
+                    <circle
+                      cx={geomCx}
+                      cy={geomCy}
+                      r={diffR}
+                      fill="none"
+                      stroke="#EF4444"
+                      strokeWidth="1"
+                      strokeDasharray="2 2"
+                      opacity="0.4"
+                    />
+                  )}
+
+                  {/* Earth's Shadow Disc (Bhūcchāyā ~40') */}
+                  <circle
+                    cx={geomCx}
+                    cy={geomCy}
+                    r={shadowR}
+                    fill="#220606"
+                    stroke="#B91C1C"
+                    strokeWidth="1.5"
+                  />
+                  <text x={geomCx} y={geomCy + 3} fontSize="9" fill="#EF4444" fontWeight="600" textAnchor="middle" fontFamily="sans-serif">
+                    Bhūcchāyā (40&apos;)
+                  </text>
+
+                  {/* Moon Orbit Chord Line (Track offset by Vikṣepa) */}
+                  <line
+                    x1="40"
+                    y1={trackY}
+                    x2="420"
+                    y2={trackY}
+                    stroke="#6366F1"
+                    strokeWidth="1.2"
+                    strokeDasharray="3 2"
+                    opacity="0.7"
+                  />
+
+                  {/* Right Triangle for Sthityardha (Half-Duration) */}
+                  {sthitBase > 0 && (
+                    <g>
+                      {/* Triangle Shading */}
+                      <polygon
+                        points={`${geomCx},${geomCy} ${geomCx},${trackY} ${geomCx - sthitBase},${trackY}`}
+                        fill="#D97706"
+                        fillOpacity="0.15"
+                        stroke="#D97706"
+                        strokeWidth="0.8"
+                      />
+
+                      {/* Hypotenuse: (rs + rm) */}
+                      <line x1={geomCx} y1={geomCy} x2={geomCx - sthitBase} y2={trackY} stroke="#F59E0B" strokeWidth="1.6" />
+
+                      {/* Perpendicular: Vikṣepa */}
+                      <line x1={geomCx} y1={geomCy} x2={geomCx} y2={trackY} stroke="#EF4444" strokeWidth="1.8" />
+                      
+                      {/* Base: Sthityardha */}
+                      <line x1={geomCx} y1={trackY} x2={geomCx - sthitBase} y2={trackY} stroke="#10B981" strokeWidth="2" />
+
+                      {/* Clean Contact Marker Dots & Non-overlapping labels */}
+                      <circle cx={geomCx - sthitBase} cy={trackY} r="3" fill="#D97706" />
+                      <text x={geomCx - sthitBase} y={trackY - 12} fontSize="8.5" fill="#FBBF24" fontWeight="600" textAnchor="middle">
+                        C1 (Sparśa)
+                      </text>
+
+                      <circle cx={geomCx + sthitBase} cy={trackY} r="3" fill="#D97706" />
+                      <text x={geomCx + sthitBase} y={trackY - 12} fontSize="8.5" fill="#FBBF24" fontWeight="600" textAnchor="middle">
+                        C4 (Mokṣa)
+                      </text>
+
+                      <circle cx={geomCx} cy={trackY} r="3" fill="#EF4444" />
+                      <text x={geomCx} y={trackY + (latOffset > 0 ? 14 : -8)} fontSize="8.5" fill="#F87171" fontWeight="600" textAnchor="middle">
+                        Madhya (Peak)
+                      </text>
+                    </g>
+                  )}
+
+                  {/* Traversing Moon Disc */}
+                  <g>
+                    <circle
+                      cx={curMoonX}
+                      cy={trackY}
+                      r={moonR}
+                      fill="#E2E8F0"
+                      stroke="#94A3B8"
+                      strokeWidth="1.2"
+                      opacity="0.9"
+                    />
+                    <circle cx={curMoonX} cy={trackY} r="2" fill="#1E293B" />
+                    <text x={curMoonX} y={trackY - moonR - 4} fontSize="8.5" fill="#E2E8F0" fontWeight="600" textAnchor="middle">
+                      Chandra
+                    </text>
+                  </g>
+
+                  {/* RIGHT PANEL: Dedicated Siddhāntic Chedyaka Geometry HUD */}
+                  <g transform="translate(445, 30)">
+                    <rect width="180" height="260" rx="12" fill="#0f111a" stroke="#1e293b" strokeWidth="1" />
+                    <text x="14" y="24" fontSize="10" fill="#F8FAFC" fontWeight="bold">
+                      Chedyaka Geometry Key
+                    </text>
+                    <text x="14" y="38" fontSize="8" fill="#64748B" fontFamily="monospace">
+                      Sūrya Siddhānta Ch. 6
+                    </text>
+                    <line x1="14" y1="46" x2="166" y2="46" stroke="#1e293b" strokeWidth="1" />
+
+                    {/* Legend Rows */}
+                    <g transform="translate(14, 62)">
+                      <circle cx="5" cy="4" r="4" fill="#B91C1C" />
+                      <text x="14" y="7" fontSize="8.5" fill="#94A3B8">Bhūcchāyā (Shadow)</text>
+                      <text x="150" y="7" fontSize="8.5" fill="#EF4444" fontWeight="600" textAnchor="end" fontFamily="monospace">40.0&apos;</text>
+                    </g>
+
+                    <g transform="translate(14, 86)">
+                      <circle cx="5" cy="4" r="4" fill="#E2E8F0" />
+                      <text x="14" y="7" fontSize="8.5" fill="#94A3B8">Chandra (Moon Disc)</text>
+                      <text x="150" y="7" fontSize="8.5" fill="#E2E8F0" fontWeight="600" textAnchor="end" fontFamily="monospace">16.0&apos;</text>
+                    </g>
+
+                    <g transform="translate(14, 110)">
+                      <circle cx="5" cy="4" r="4" fill="none" stroke="#F59E0B" strokeWidth="1.5" />
+                      <text x="14" y="7" fontSize="8.5" fill="#94A3B8">Māna-aikya (rs + rm)</text>
+                      <text x="150" y="7" fontSize="8.5" fill="#F59E0B" fontWeight="600" textAnchor="end" fontFamily="monospace">56.0&apos;</text>
+                    </g>
+
+                    <g transform="translate(14, 134)">
+                      <line x1="2" y1="4" x2="9" y2="4" stroke="#EF4444" strokeWidth="2" />
+                      <text x="14" y="7" fontSize="8.5" fill="#94A3B8">Vikṣepa (Latitude β)</text>
+                      <text x="150" y="7" fontSize="8.5" fill="#EF4444" fontWeight="600" textAnchor="end" fontFamily="monospace">
+                        {(Math.abs(moonLatitudeDeg || 0) * 60).toFixed(1)}&apos;
+                      </text>
+                    </g>
+
+                    <g transform="translate(14, 158)">
+                      <line x1="2" y1="4" x2="9" y2="4" stroke="#10B981" strokeWidth="2" />
+                      <text x="14" y="7" fontSize="8.5" fill="#94A3B8">Sthityardha Base</text>
+                      <text x="150" y="7" fontSize="8.5" fill="#10B981" fontWeight="600" textAnchor="end" fontFamily="monospace">
+                        {sthitBase > 0 ? (sthitBase / shadowR * 40).toFixed(1) : '0'}&apos;
+                      </text>
+                    </g>
+
+                    <line x1="14" y1="178" x2="166" y2="178" stroke="#1e293b" strokeWidth="1" />
+
+                    {/* Half Duration Readout */}
+                    <g transform="translate(14, 196)">
+                      <text x="0" y="0" fontSize="8" fill="#64748B" letterSpacing="0.5">CALCULATED HALF-DURATION</text>
+                      <text x="0" y="16" fontSize="12" fill="#38BDF8" fontWeight="bold" fontFamily="monospace">
+                        {sthitBase > 0 ? ((sthitBase / shadowR * 40) / 12.19).toFixed(1) : '0'} ghaṭī
+                      </text>
+                      <text x="0" y="28" fontSize="8" fill="#94A3B8">
+                        ≈ {sthitBase > 0 ? (((sthitBase / shadowR * 40) / 12.19) * 24).toFixed(0) : '0'} minutes
+                      </text>
+                    </g>
+
+                    {/* Status Pill */}
+                    <g transform="translate(14, 234)">
+                      <rect width="152" height="18" rx="5" fill={sthitBase > 0 ? '#1e1b4b' : '#1c1917'} />
+                      <text x="76" y="12" fontSize="8" fill={sthitBase > 0 ? '#818CF8' : '#78716C'} textAnchor="middle" fontWeight="bold">
+                        {sthitBase > 0 ? '✓ Eclipse Contact Formed' : '✗ Clear Miss (No Contact)'}
+                      </text>
+                    </g>
+                  </g>
+                </g>
+              );
+            })()}
           </svg>
         ) : (
           // ==================== SPACE GEOMETRY VIEW ====================

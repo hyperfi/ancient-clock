@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { SOURCES, type Source } from '@/data/sources';
 import { ProvenanceLabel } from '@/components/ui/ProvenanceLabel';
+import { ArmillarySphere } from '@/components/svg/ArmillarySphere';
 
 const SOURCE_TYPE_LABELS: Record<Source['sourceType'], string> = {
   primary_text: 'Primary Text',
@@ -176,37 +177,12 @@ export default function SourcesPage() {
           </p>
         </div>
 
-        {/* Animated Armillary Sphere Graphic */}
-        <div className="w-36 h-36 flex-none bg-[#FEFDF5] dark:bg-[#141210] rounded-2xl border border-stone-200 dark:border-stone-800 p-2 shadow-xs">
-          <svg viewBox="0 0 100 100" className="w-full h-full">
-            <circle cx="50" cy="50" r="42" fill="none" stroke="#B87333" strokeWidth="1.5" />
-            <motion.ellipse
-              cx="50"
-              cy="50"
-              rx="42"
-              ry="18"
-              fill="none"
-              stroke="#D97706"
-              strokeWidth="1.2"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 16, repeat: Infinity, ease: 'linear' }}
-              style={{ originX: '50px', originY: '50px' }}
-            />
-            <motion.ellipse
-              cx="50"
-              cy="50"
-              rx="18"
-              ry="42"
-              fill="none"
-              stroke="#4338CA"
-              strokeWidth="1.2"
-              className="dark:stroke-indigo-400"
-              animate={{ rotate: -360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-              style={{ originX: '50px', originY: '50px' }}
-            />
-            <circle cx="50" cy="50" r="4" fill="#1C1917" className="dark:fill-stone-100" />
-          </svg>
+        {/* Animated Armillary Sphere Graphic (Gola-yantra) */}
+        <div className="w-36 h-36 flex-none bg-[#FEFDF5] dark:bg-[#141210] rounded-2xl border border-stone-200 dark:border-stone-800 p-3 shadow-xs flex items-center justify-center relative group">
+          <ArmillarySphere size="100%" interactive={true} />
+          <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-[10px] font-mono text-stone-500 dark:text-stone-400 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xs">
+            Gola-yantra (SS Ch. 13)
+          </div>
         </div>
       </div>
 

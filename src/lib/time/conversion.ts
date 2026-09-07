@@ -13,6 +13,14 @@ import {
   SECONDS_PER_GHATIKA,
   SECONDS_PER_VINADI,
   SECONDS_PER_PRANA,
+  SECONDS_PER_MUHURTA,
+  SECONDS_PER_GURU_AKSHARA,
+  GURU_AKSHARAS_PER_VINADI,
+  GURU_AKSHARAS_PER_GHATIKA,
+  SECONDS_PER_NADIKA,
+  SECONDS_PER_KALA,
+  SECONDS_PER_KASTHA,
+  SECONDS_PER_MATRA,
   GHATIKAS_PER_DAY,
   VINADIS_PER_GHATIKA,
   PRANAS_PER_VINADI,
@@ -221,4 +229,98 @@ export function verifyUnitRelationships(): boolean {
   ];
 
   return checks.every(Boolean);
+}
+
+// ─── Vedāṅga Jyotiṣa Conversions ────────────────────────────────────────────
+
+export interface VedangaTime {
+  /** Muhūrtas elapsed in the day (0 to 29) */
+  muhurtas: number;
+  /** Nāḍikās elapsed in the day (0 to 59) */
+  nadikas: number;
+  /** Kalās elapsed in the current nāḍikā (0 to 9) */
+  kalas: number;
+  /** Kāṣṭhās elapsed in the current kalā (0 to 123) */
+  kasthas: number;
+  /** Mātrās elapsed in the current kāṣṭhā (0 to 9) */
+  matras: number;
+}
+
+/**
+ * Convert total seconds from day-start to Vedāṅga Jyotiṣa time units.
+ */
+export function secondsToVedangaTime(totalSeconds: number): VedangaTime {
+  const s = ((totalSeconds % SECONDS_PER_DAY) + SECONDS_PER_DAY) % SECONDS_PER_DAY;
+
+  const nadikas = Math.floor(s / SECONDS_PER_NADIKA);
+  const remainderNadika = s - nadikas * SECONDS_PER_NADIKA;
+
+  const muhurtas = Math.floor(s / SECONDS_PER_MUHURTA);
+
+  const kalas = Math.floor(remainderNadika / SECONDS_PER_KALA);
+  const remainderKala = remainderNadika - kalas * SECONDS_PER_KALA;
+
+  const kasthas = Math.floor(remainderKala / SECONDS_PER_KASTHA);
+  const remainderKastha = remainderKala - kasthas * SECONDS_PER_KASTHA;
+
+  const matras = Math.floor(remainderKastha / SECONDS_PER_MATRA);
+
+  return { muhurtas, nadikas, kalas, kasthas, matras };
+}
+
+/**
+ * Convert Vedāṅga Jyotiṣa time units to total seconds from day-start.
+ */
+export function vedangaTimeToSeconds(time: {
+  nadikas: number;
+  kalas: number;
+  kasthas: number;
+  matras?: number;
+}): number {
+  return (
+    time.nadikas * SECONDS_PER_NADIKA +
+    time.kalas * SECONDS_PER_KALA +
+    time.kasthas * SECONDS_PER_KASTHA +
+    (time.matras || 0) * SECONDS_PER_MATRA
+  );
+}
+
+/**
+ * Format Vedāṅga Jyotiṣa time as string
+ */
+export function formatVedangaTime(time: VedangaTime): string {
+  return `${time.nadikas} nāḍikā · ${time.kalas} kalā · ${time.kasthas} kāṣṭhā`;
+}
+
+// ─── Gurvakṣara Acoustic Cadence ────────────────────────────────────────────
+
+export interface GurvaksharaBreakdown {
+  /** Gurvakṣaras in the current prāṇa (0 to 9, 0.4s each) */
+  inPrana: number;
+  /** Gurvakṣaras in the current vināḍī (0 to 59, 24s total) */
+  inVinadi: number;
+  /** Gurvakṣaras in the current ghaṭikā (0 to 3599, 24m total) */
+  inGhatika: number;
+  /** Total gurvakṣaras elapsed in the day (0 to 215999) */
+  totalInDay: number;
+  /** Fraction (0 to 1) of the current 400ms syllable cycle */
+  syllableProgress: number;
+}
+
+/**
+ * Calculate gurvakṣara counts from total seconds.
+ */
+export function secondsToGurvaksharas(totalSeconds: number): GurvaksharaBreakdown {
+  const s = ((totalSeconds % SECONDS_PER_DAY) + SECONDS_PER_DAY) % SECONDS_PER_DAY;
+  const inGhatikaSeconds = s % SECONDS_PER_GHATIKA;
+  const inVinadiSeconds = inGhatikaSeconds % SECONDS_PER_VINADI;
+  const inPranaSeconds = inVinadiSeconds % SECONDS_PER_PRANA;
+
+  const inPrana = Math.min(9, Math.floor(inPranaSeconds / SECONDS_PER_GURU_AKSHARA));
+  const inVinadi = Math.min(59, Math.floor(inVinadiSeconds / SECONDS_PER_GURU_AKSHARA));
+  const inGhatika = Math.min(3599, Math.floor(inGhatikaSeconds / SECONDS_PER_GURU_AKSHARA));
+  const totalInDay = Math.min(215999, Math.floor(s / SECONDS_PER_GURU_AKSHARA));
+  const syllableProgress = (inPranaSeconds % SECONDS_PER_GURU_AKSHARA) / SECONDS_PER_GURU_AKSHARA;
+
+  return { inPrana, inVinadi, inGhatika, totalInDay, syllableProgress };
 }
