@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { ModuleLayout, ThenNowToggle, SourceTooltip, ProvenanceLabel } from '@/components/ui';
 import { 
@@ -137,6 +137,136 @@ export default function SunShadowPage() {
   const dateObj = useMemo(() => new Date(dateStr + 'T12:00:00'), [dateStr]);
   const { sunrise, sunset } = useMemo(() => getSunriseSunset(dateObj, lat), [dateObj, lat]);
 
+  // Interactive Sun Dragging along Celestial Arc
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const [isDraggingSun, setIsDraggingSun] = useState<boolean>(false);
+
+  // Helper to compute sun coordinates on the celestial arc for a specific hour
+  const getSunPosAtHour = useCallback((h: number) => {
+    const pos = calculateSolarPosition(dateObj, lat, h);
+    const alt = Math.max(0, pos.altitude);
+    const rad = (alt * Math.PI) / 180;
+    const dayProg = Math.max(0, Math.min(1, (h - sunrise) / (sunset - sunrise || 1)));
+    const ewFactor = Math.cos((1 - dayProg) * Math.PI);
+    const D_sun = 225 + 40 * Math.cos(rad);
+    const sx = Math.max(65, Math.min(735, 400 + D_sun * ewFactor * Math.cos(rad * 0.3)));
+    const sy = Math.max(30, Math.min(370, (390 - 150) - D_sun * Math.sin(rad)));
+    return { x: sx, y: sy };
+  }, [dateObj, lat, sunrise, sunset]);
+
+  // Convert screen client coordinates to SVG viewBox coordinates
+  const getSvgCoords = useCallback((clientX: number, clientY: number) => {
+    if (!svgRef.current) return null;
+    const svg = svgRef.current;
+    const ctm = svg.getScreenCTM();
+    if (ctm) {
+      const pt = svg.createSVGPoint();
+      pt.x = clientX;
+      pt.y = clientY;
+      const transformed = pt.matrixTransform(ctm.inverse());
+      return { x: transformed.x, y: transformed.y };
+    }
+    const rect = svg.getBoundingClientRect();
+    return {
+      x: ((clientX - rect.left) / rect.width) * 800,
+      y: ((clientY - rect.top) / rect.height) * 500,
+    };
+  }, []);
+
+  // Find the exact time of day along the diurnal arc closest to pointer position (px, py)
+  const findClosestHourOnPath = useCallback((px: number, py: number) => {
+    const samples = 48;
+    const step = (sunset - sunrise) / samples;
+    let bestH = sunrise;
+    let bestDistSq = Infinity;
+
+    for (let i = 0; i <= samples; i++) {
+      const h = sunrise + i * step;
+      const { x, y } = getSunPosAtHour(h);
+      const distSq = (x - px) * (x - px) + (y - py) * (y - py);
+      if (distSq < bestDistSq) {
+        bestDistSq = distSq;
+        bestH = h;
+      }
+    }
+
+    // Binary refinement for smooth high-resolution dragging
+    let low = Math.max(sunrise, bestH - step);
+    let high = Math.min(sunset, bestH + step);
+    for (let iter = 0; iter < 8; iter++) {
+      const m1 = low + (high - low) / 3;
+      const m2 = high - (high - low) / 3;
+      const p1 = getSunPosAtHour(m1);
+      const p2 = getSunPosAtHour(m2);
+      const d1 = (p1.x - px) * (p1.x - px) + (p1.y - py) * (p1.y - py);
+      const d2 = (p2.x - px) * (p2.x - px) + (p2.y - py) * (p2.y - py);
+      if (d1 < d2) {
+        high = m2;
+      } else {
+        low = m1;
+      }
+    }
+    return (low + high) / 2;
+  }, [sunrise, sunset, getSunPosAtHour]);
+
+  // Pointer drag handlers for Sūrya
+  const handleSunPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsAutoPlay(false);
+    setIsDraggingSun(true);
+    try {
+      (e.target as Element).setPointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleSunPointerMove = (e: React.PointerEvent) => {
+    if (!isDraggingSun) return;
+    const coords = getSvgCoords(e.clientX, e.clientY);
+    if (!coords) return;
+    const newHour = findClosestHourOnPath(coords.x, coords.y);
+    setTimeOfDay(newHour);
+  };
+
+  const handleSunPointerUp = (e: React.PointerEvent) => {
+    if (isDraggingSun) {
+      setIsDraggingSun(false);
+      try {
+        (e.target as Element).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+  };
+
+  // Window-level safety drag listener for seamless mouse/touch release outside SVG
+  useEffect(() => {
+    if (!isDraggingSun) return;
+
+    const onGlobalPointerMove = (e: PointerEvent) => {
+      const coords = getSvgCoords(e.clientX, e.clientY);
+      if (!coords) return;
+      const newHour = findClosestHourOnPath(coords.x, coords.y);
+      setTimeOfDay(newHour);
+    };
+
+    const onGlobalPointerUp = () => {
+      setIsDraggingSun(false);
+    };
+
+    window.addEventListener('pointermove', onGlobalPointerMove);
+    window.addEventListener('pointerup', onGlobalPointerUp);
+    window.addEventListener('pointercancel', onGlobalPointerUp);
+
+    return () => {
+      window.removeEventListener('pointermove', onGlobalPointerMove);
+      window.removeEventListener('pointerup', onGlobalPointerUp);
+      window.removeEventListener('pointercancel', onGlobalPointerUp);
+    };
+  }, [isDraggingSun, getSvgCoords, findClosestHourOnPath]);
+
   // Auto-play animation
   useEffect(() => {
     let animationFrameId: number;
@@ -177,8 +307,8 @@ export default function SunShadowPage() {
       const pos = calculateSolarPosition(dateObj, lat, h);
       if (pos.altitude >= 0) {
         const rad = (pos.altitude * Math.PI) / 180;
-        const D = 230 + 50 * Math.cos(rad);
-        const sx = 400 + D * ew * Math.cos(rad);
+        const D = 225 + 40 * Math.cos(rad);
+        const sx = 400 + D * ew * Math.cos(rad * 0.3);
         const sy = (390 - 150) - D * Math.sin(rad);
         pts.push(`${pts.length === 0 ? 'M' : 'L'} ${sx.toFixed(1)} ${sy.toFixed(1)}`);
       }
@@ -361,8 +491,14 @@ export default function SunShadowPage() {
             {/* SVG Visual Canvas */}
             <div className="w-full relative aspect-[16/10] bg-stone-900 select-none overflow-hidden">
               {viewMode === 'elevation' ? (
-                /* VIEW 1: Elevation Triangle (Altitude Profile) */
-                <svg viewBox="0 0 800 500" className="w-full h-full">
+                <svg 
+                  ref={svgRef}
+                  viewBox="0 0 800 500" 
+                  className={`w-full h-full select-none ${isDraggingSun ? 'cursor-grabbing' : ''}`}
+                  onPointerMove={handleSunPointerMove}
+                  onPointerUp={handleSunPointerUp}
+                  onPointerCancel={handleSunPointerUp}
+                >
                   <defs>
                     {/* Sky Gradient with rich celestial depth */}
                     <linearGradient id="skyGradient" x1="0" y1="0" x2="0" y2="1">
@@ -445,33 +581,27 @@ export default function SunShadowPage() {
                     const pxPerAngula = gh / 12; // 12.5 px/angula
                     const rad = (clampedAltitude * Math.PI) / 180;
 
-                    // Day progression factor for East-to-West movement:
-                    // 0 at sunrise (East), 0.5 at noon (Meridian), 1 at sunset (West)
+                    // Smooth Diurnal Sun Position in the sky - matching skyArcD with NO jumping:
+                    // ewFactor smoothly transitions from -1 (East) -> 0 (Meridian Noon) -> +1 (West)
                     const dayProg = Math.max(0, Math.min(1, (timeOfDay - sunrise) / (sunset - sunrise || 1)));
-                    // ewFactor: -1 at sunrise (East / Left), 0 at noon (Meridian / Center), +1 at sunset (West / Right)
                     const ewFactor = Math.cos((1 - dayProg) * Math.PI);
+                    const D_sun = 225 + 40 * Math.cos(rad);
+                    const sunX = Math.max(65, Math.min(735, gx + D_sun * ewFactor * Math.cos(rad * 0.3)));
+                    const sunY = Math.max(30, Math.min(370, (gy - gh) - D_sun * Math.sin(rad)));
 
-                    // Celestial vault radius modulated smoothly with altitude
-                    const D_sun = 230 + 50 * Math.cos(rad);
-                    // Sun position in sky matching skyArcD
-                    const rawSunX = gx + D_sun * ewFactor * Math.cos(rad);
-                    const rawSunY = (gy - gh) - D_sun * Math.sin(rad);
-                    const sunX = Math.max(70, Math.min(730, rawSunX));
-                    const sunY = Math.max(40, Math.min(370, rawSunY));
-
-                    // Physical Ray Slope from Sun center (sunX, sunY) to Gnomon tip (gx, gy - gh):
+                    // 100% Collinear Ground Shadow: Directly aligned with the Sun's ray through the Śaṅku tip!
+                    // Slope from Sun to Śaṅku tip: dy / dx = ((gy - gh) - sunY) / (gx - sunX)
+                    // The ray continues through (gx, gy - gh) to hit ground at (shadowEndX, gy) with identical slope:
                     const dx = gx - sunX;
                     const dy = (gy - gh) - sunY;
-                    const shadowSlope = dy / (dx || 0.0001);
-
-                    // True ground intersection for 100% collinear ray:
-                    // (gy - (gy - gh)) / (shadowEndX - gx) = shadowSlope => shadowEndX = gx + gh / shadowSlope
+                    const shadowSlope = dy / (dx || 0.00001);
                     const rawShadowEndX = gx + gh / shadowSlope;
                     const maxShadowPx = 340;
                     const shadowEndX = Math.max(gx - maxShadowPx, Math.min(gx + maxShadowPx, rawShadowEndX));
-                    const shadowSign = shadowEndX >= gx ? 1 : -1;
                     const currentShadowPx = Math.abs(shadowEndX - gx);
+                    const shadowSign = shadowEndX >= gx ? 1 : -1;
 
+                    const isNoon = Math.abs(timeOfDay - 12) < 0.25;
                     const badgeX = Math.max(120, Math.min(680, (gx + shadowEndX) / 2));
                     const R_px = 150;
 
@@ -491,23 +621,66 @@ export default function SunShadowPage() {
 
                         {/* Diurnal Sun Celestial Path Arc in the Sky */}
                         {skyArcD && (
-                          <path d={skyArcD} fill="none" stroke="#fde047" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.4" />
+                          <g>
+                            {/* Clickable hit track along the diurnal path */}
+                            <path 
+                              d={skyArcD} 
+                              fill="none" 
+                              stroke="transparent" 
+                              strokeWidth="28" 
+                              className="cursor-pointer"
+                              onPointerDown={(e) => {
+                                const coords = getSvgCoords(e.clientX, e.clientY);
+                                if (coords) {
+                                  setIsAutoPlay(false);
+                                  const newHour = findClosestHourOnPath(coords.x, coords.y);
+                                  setTimeOfDay(newHour);
+                                }
+                              }}
+                            />
+                            <path d={skyArcD} fill="none" stroke="#fde047" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.4" pointerEvents="none" />
+                          </g>
                         )}
 
                         {/* Ground Shadow Path */}
-                        {!isNight && currentShadowPx > 2 && (
+                        {!isNight && (currentShadowPx > 2 || isNoon) && (
                           <g>
-                            <line 
-                              x1={gx} 
-                              y1={gy + 2} 
-                              x2={shadowEndX} 
-                              y2={gy + 2} 
-                              stroke="#000000" 
-                              strokeWidth="7" 
-                              strokeLinecap="round" 
-                              opacity="0.8" 
-                              filter="url(#shadowBlur)" 
-                            />
+                            {currentShadowPx > 2 ? (
+                              <line 
+                                x1={gx} 
+                                y1={gy + 2} 
+                                x2={shadowEndX} 
+                                y2={gy + 2} 
+                                stroke="#000000" 
+                                strokeWidth="7" 
+                                strokeLinecap="round" 
+                                opacity="0.8" 
+                                filter="url(#shadowBlur)" 
+                              />
+                            ) : (
+                              /* Solar Noon (Palabhā) Meridian Shadow Indicator pointing North */
+                              <g opacity="0.9">
+                                <line 
+                                  x1={gx} 
+                                  y1={gy + 2} 
+                                  x2={gx + Math.min(180, (palabhaFromLatitude(lat) / 12) * gh * 0.7)} 
+                                  y2={gy + 26} 
+                                  stroke="#f59e0b" 
+                                  strokeWidth="4" 
+                                  strokeLinecap="round" 
+                                />
+                                <text 
+                                  x={gx + Math.min(180, (palabhaFromLatitude(lat) / 12) * gh * 0.7) + 6} 
+                                  y={gy + 30} 
+                                  fontSize="9.5" 
+                                  fontWeight="bold" 
+                                  fill="#fbbf24" 
+                                  fontFamily="monospace"
+                                >
+                                  Palabhā: {formatAngulas(palabhaFromLatitude(lat)).formatted} (North)
+                                </text>
+                              </g>
+                            )}
                             
                             {/* Minimalist Ground Ruler Ticks (Clean lines & numbers, no heavy boxes) */}
                             {isHistorical ? (
@@ -540,13 +713,17 @@ export default function SunShadowPage() {
 
                             {/* Essential 1: Shadow Length (Chāyā) Badge */}
                             <g>
-                              <line x1={gx} y1={gy + 24} x2={shadowEndX} y2={gy + 24} stroke="#f59e0b" strokeWidth="1.5" />
-                              <polygon points={`${shadowEndX},${gy+24} ${shadowEndX - shadowSign * 6},${gy+20} ${shadowEndX - shadowSign * 6},${gy+28}`} fill="#f59e0b" />
+                              {currentShadowPx > 2 && (
+                                <>
+                                  <line x1={gx} y1={gy + 24} x2={shadowEndX} y2={gy + 24} stroke="#f59e0b" strokeWidth="1.5" />
+                                  <polygon points={`${shadowEndX},${gy+24} ${shadowEndX - shadowSign * 6},${gy+20} ${shadowEndX - shadowSign * 6},${gy+28}`} fill="#f59e0b" />
+                                </>
+                              )}
                               <g transform={`translate(${badgeX}, ${gy + 36})`}>
                                 <rect 
-                                  x="-70" 
+                                  x={isNoon ? -95 : -70} 
                                   y="-10" 
-                                  width="140" 
+                                  width={isNoon ? 190 : 140} 
                                   height="20" 
                                   rx="4" 
                                   fill="#1c1917" 
@@ -564,8 +741,8 @@ export default function SunShadowPage() {
                                   fontFamily="monospace"
                                 >
                                   {isHistorical 
-                                    ? `Chāyā: ${angulaBreakdown.formatted}` 
-                                    : `Shadow: ${modernShadowM.toFixed(2)} m`}
+                                    ? (isNoon ? `Chāyā (Palabhā): ${angulaBreakdown.formatted}` : `Chāyā: ${angulaBreakdown.formatted}`) 
+                                    : (isNoon ? `Shadow (Palabhā): ${modernShadowM.toFixed(2)} m` : `Shadow: ${modernShadowM.toFixed(2)} m`)}
                                 </text>
                               </g>
                             </g>
@@ -707,14 +884,65 @@ export default function SunShadowPage() {
                           </g>
                         </g>
 
-                        {/* Sun Celestial Glyph Tracking Live Diurnal Movement */}
+                        {/* Sun Celestial Glyph Tracking Live Diurnal Movement - Interactive Dragging */}
                         {!isNight ? (
-                          <g transform={`translate(${sunX}, ${sunY})`}>
-                            <circle cx="0" cy="0" r="30" fill="url(#sunGlow)" />
-                            <circle cx="0" cy="0" r="15" fill="#FDE047" stroke="#F59E0B" strokeWidth="2" />
-                            <text x="0" y="4" fontSize="10" fontWeight="bold" fill="#78350f" textAnchor="middle">
+                          <g 
+                            transform={`translate(${sunX}, ${sunY})`}
+                            onPointerDown={handleSunPointerDown}
+                            className={`cursor-grab ${isDraggingSun ? 'cursor-grabbing' : ''}`}
+                            style={{ touchAction: 'none' }}
+                          >
+                            {/* Generous hit area for easy mouse/touch grabbing */}
+                            <circle cx="0" cy="0" r="38" fill="transparent" />
+
+                            {/* Sun Glow */}
+                            <circle cx="0" cy="0" r="30" fill="url(#sunGlow)" pointerEvents="none" />
+
+                            {/* Active dragging dashed halo indicator */}
+                            {isDraggingSun && (
+                              <circle 
+                                cx="0" 
+                                cy="0" 
+                                r="24" 
+                                fill="none" 
+                                stroke="#f59e0b" 
+                                strokeWidth="2" 
+                                strokeDasharray="4 3" 
+                                pointerEvents="none" 
+                              />
+                            )}
+
+                            {/* Sun Core */}
+                            <circle cx="0" cy="0" r="15" fill="#FDE047" stroke="#F59E0B" strokeWidth="2" pointerEvents="none" />
+                            <text x="0" y="4" fontSize="10" fontWeight="bold" fill="#78350f" textAnchor="middle" pointerEvents="none">
                               {clampedAltitude.toFixed(0)}°
                             </text>
+
+                            {/* Live Floating Time Badge & Drag Handle Indicator */}
+                            <g transform="translate(0, -28)" pointerEvents="none">
+                              <rect 
+                                x="-32" 
+                                y="-12" 
+                                width="64" 
+                                height="18" 
+                                rx="9" 
+                                fill="#1c1917" 
+                                fillOpacity={isDraggingSun ? "0.95" : "0.75"} 
+                                stroke={isDraggingSun ? "#f59e0b" : "#78716c"} 
+                                strokeWidth={isDraggingSun ? "1.5" : "1"} 
+                              />
+                              <text 
+                                x="0" 
+                                y="1" 
+                                fontSize="9.5" 
+                                fontWeight="bold" 
+                                fill={isDraggingSun ? "#fef08a" : "#f1f5f9"} 
+                                textAnchor="middle"
+                                fontFamily="monospace"
+                              >
+                                {timeStr}
+                              </text>
+                            </g>
                           </g>
                         ) : (
                           <g transform="translate(100, 80)">
@@ -1231,26 +1459,55 @@ export default function SunShadowPage() {
                     </p>
                   </div>
 
-                  <div className="flex flex-col gap-3">
-                    <div className="flex justify-between items-center text-xs font-medium text-stone-700 dark:text-stone-300">
-                      <span>Interactive Palabhā Explorer:</span>
-                      <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
-                        {palabhaSlider.toFixed(2)} aṅg ({formatAngulas(palabhaSlider).formatted})
-                      </span>
+                  <div className="flex flex-col gap-4">
+                    {/* Slider 1: Palabhā */}
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex justify-between items-center text-xs font-medium text-stone-700 dark:text-stone-300">
+                        <span>Equinoctial Noon Shadow (Palabhā):</span>
+                        <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
+                          {palabhaSlider.toFixed(2)} aṅg ({formatAngulas(palabhaSlider).formatted})
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="18"
+                        step="0.05"
+                        value={palabhaSlider}
+                        onChange={(e) => {
+                          const pVal = Number(e.target.value);
+                          setPalabhaSlider(pVal);
+                          const newLat = (Math.atan(pVal / 12) * 180) / Math.PI;
+                          setLat(newLat);
+                          setCityId('custom');
+                        }}
+                        className="w-full accent-amber-600 h-2 bg-stone-200 dark:bg-stone-700 rounded-lg cursor-pointer"
+                      />
                     </div>
-                    <input
-                      type="range"
-                      min="1"
-                      max="18"
-                      step="0.05"
-                      value={palabhaSlider}
-                      onChange={(e) => setPalabhaSlider(Number(e.target.value))}
-                      className="w-full accent-amber-600 h-2 bg-stone-200 dark:bg-stone-700 rounded-lg cursor-pointer"
-                    />
+
+                    {/* Slider 2: Latitude */}
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex justify-between items-center text-xs font-medium text-stone-700 dark:text-stone-300">
+                        <span>Geographical Latitude (Akṣāṁśa φ):</span>
+                        <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                          φ = {lat.toFixed(2)}° N
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="50"
+                        step="0.1"
+                        value={lat}
+                        onChange={(e) => handleCustomLat(Number(e.target.value))}
+                        className="w-full accent-indigo-600 h-2 bg-stone-200 dark:bg-stone-700 rounded-lg cursor-pointer"
+                      />
+                    </div>
+
                     <div className="p-3 bg-white dark:bg-stone-950 rounded-lg border border-stone-200 dark:border-stone-800 text-xs flex justify-between items-center">
-                      <span className="text-stone-600 dark:text-stone-400">Derived Geographical Latitude:</span>
-                      <span className="font-mono font-bold text-sm text-indigo-600 dark:text-indigo-400">
-                        φ = {solvedLatFromPalabha.toFixed(2)}° N
+                      <span className="text-stone-600 dark:text-stone-400">Mathematical Relation:</span>
+                      <span className="font-mono font-semibold text-xs text-stone-700 dark:text-stone-300">
+                        tan({lat.toFixed(1)}°) = {(palabhaSlider / 12).toFixed(3)} → Palabhā = {palabhaSlider.toFixed(2)} aṅg
                       </span>
                     </div>
                   </div>
