@@ -19,7 +19,7 @@
 
 # production
 /build
-
+cloudflared-windows-amd64.exe
 # misc
 .DS_Store
 *.pem
