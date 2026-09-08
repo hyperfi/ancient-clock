@@ -403,24 +403,24 @@ export default function MeasureTimePage() {
         </div>
       }
     >
-      <div className="h-full w-full flex flex-col p-4 lg:p-8 overflow-y-auto space-y-8">
+      <div className="h-full w-full flex flex-col space-y-6 sm:space-y-8">
         
         {/* Top Navigation Pill Tabs to Sub-Labs */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-200 dark:border-stone-800 pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 border-b border-stone-200 dark:border-stone-800 pb-4">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-sm">
+            <span className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-sm min-h-[38px] flex items-center">
               1. Ahorātra Dial
             </span>
             <Link 
               href="/observe/measure-time/water-clock"
-              className="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-lg text-xs font-medium bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors flex items-center gap-1.5 min-h-[38px]"
             >
               <span>2. Sinking Water Clock (Ghaṭīyantra)</span>
               <span className="text-indigo-600 dark:text-indigo-400 font-bold">→</span>
             </Link>
             <Link 
               href="/observe/measure-time/spoken-clock"
-              className="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-lg text-xs font-medium bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors flex items-center gap-1.5 min-h-[38px]"
             >
               <span>3. Spoken Syllables (Nāḍikā)</span>
               <span className="text-amber-600 dark:text-amber-400 font-bold">→</span>
@@ -500,29 +500,29 @@ export default function MeasureTimePage() {
                 <g className="select-none pointer-events-none">
                   {convention === 'siddhanta' ? (
                     <>
-                      <text x="50" y="33" textAnchor="middle" fill="#D97706" fontSize="4.5" fontWeight="bold" className="font-serif">
+                      <text x="50" y="32" textAnchor="middle" fill="#D97706" fontSize="5.0" fontWeight="bold" className="font-serif">
                         {currentGhatikaNum} ghaṭikā
                       </text>
-                      <text x="50" y="38" textAnchor="middle" fill="currentColor" fontSize="2.5" className="text-stone-500 dark:text-stone-400 font-mono">
+                      <text x="50" y="38" textAnchor="middle" fill="currentColor" fontSize="3.0" className="text-stone-500 dark:text-stone-400 font-mono">
                         {Math.floor(currentVinadis)} vināḍī · {Math.floor(timeState.traditional.pranas)} prāṇa
                       </text>
                     </>
                   ) : (
                     <>
-                      <text x="50" y="33" textAnchor="middle" fill="#D97706" fontSize="4.2" fontWeight="bold" className="font-serif">
+                      <text x="50" y="32" textAnchor="middle" fill="#D97706" fontSize="4.8" fontWeight="bold" className="font-serif">
                         {currentVedanga.nadikas} nāḍikā · {currentVedanga.kalas} kalā
                       </text>
-                      <text x="50" y="38" textAnchor="middle" fill="currentColor" fontSize="2.4" className="text-stone-500 dark:text-stone-400 font-mono">
-                        {currentVedanga.kasthas} kāṣṭhā (Muhūrta #{currentVedanga.muhurtas + 1})
+                      <text x="50" y="38" textAnchor="middle" fill="currentColor" fontSize="2.8" className="text-stone-500 dark:text-stone-400 font-mono">
+                        {currentVedanga.kasthas} kāṣṭhā (M#{currentVedanga.muhurtas + 1})
                       </text>
                     </>
                   )}
                   
                   {/* Lower Quadrant: Modern Clock & Epoch Label */}
-                  <text x="50" y="66" textAnchor="middle" fill="currentColor" fontSize="4.8" fontWeight="bold" fontFamily="monospace" className="text-stone-900 dark:text-stone-100">
+                  <text x="50" y="66" textAnchor="middle" fill="currentColor" fontSize="5.2" fontWeight="bold" fontFamily="monospace" className="text-stone-900 dark:text-stone-100">
                     {formatModernTime(timeState.modern)}
                   </text>
-                  <text x="50" y="72" textAnchor="middle" fill="currentColor" fontSize="2.8" className="text-stone-500 dark:text-stone-400 font-sans">
+                  <text x="50" y="73" textAnchor="middle" fill="currentColor" fontSize="3.2" className="text-stone-500 dark:text-stone-400 font-sans">
                     {dayReckoning === 'audayika' ? 'Sunrise Epoch' : 'Midnight Epoch'}
                   </text>
                 </g>
@@ -530,13 +530,13 @@ export default function MeasureTimePage() {
             </div>
 
             {/* Clear Digital Readout Display Card */}
-            <div className="mt-4 flex flex-col items-center gap-1 px-5 py-2.5 bg-stone-50/90 dark:bg-stone-900/60 rounded-xl border border-stone-200 dark:border-stone-800 text-center select-none shadow-xs">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider">
+            <div className="mt-4 flex flex-col items-center gap-1.5 px-4 sm:px-5 py-2.5 bg-stone-50/90 dark:bg-stone-900/60 rounded-xl border border-stone-200 dark:border-stone-800 text-center select-none shadow-xs">
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider">
                   Current Time Reading
                 </span>
-                <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-stone-200/80 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
-                  {convention === 'siddhanta' ? 'Siddhānta Convention' : 'Vedāṅga Jyotiṣa'}
+                <span className="text-xs font-mono font-medium px-2.5 py-0.5 rounded-full bg-stone-200/80 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
+                  {convention === 'siddhanta' ? 'Siddhānta' : 'Vedāṅga Jyotiṣa'}
                 </span>
               </div>
               <div className="flex items-baseline gap-2.5 mt-0.5">

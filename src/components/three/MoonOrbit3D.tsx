@@ -775,37 +775,38 @@ export const MoonOrbit3D: React.FC<MoonOrbit3DProps> = ({
       />
 
       {/* ── Floating Camera Preset Toolbar ── */}
-      <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md p-1 rounded-xl border border-stone-200/80 dark:border-stone-800 shadow-sm z-10 text-xs">
+      <div className="absolute top-2.5 sm:top-3 right-2.5 sm:right-3 flex items-center gap-1 sm:gap-1.5 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md p-1 rounded-xl border border-stone-200/80 dark:border-stone-800 shadow-sm z-10 text-xs max-w-[calc(100%-20px)] overflow-x-auto scrollbar-none">
         {(
           [
-            ['perspective', '3D Angle', '3D Perspective View'],
-            ['top', 'Top View', 'Top-Down View (matches 2D diagram)'],
-            ['side', 'Side View', 'Side View (see 5° orbital tilt)'],
-            ['moon', '🌙 Moon', 'Moon Close-up (follow Moon)'],
+            ['perspective', '3D', '3D Angle', '3D Perspective View'],
+            ['top', 'Top', 'Top View', 'Top-Down View (matches 2D diagram)'],
+            ['side', 'Side', 'Side View', 'Side View (see 5° orbital tilt)'],
+            ['moon', '🌙', '🌙 Moon', 'Moon Close-up (follow Moon)'],
           ] as const
-        ).map(([key, label, title]) => (
+        ).map(([key, shortLabel, fullLabel, title]) => (
           <button
             key={key}
             type="button"
             onClick={() => setCameraPreset(key as CameraPreset)}
-            className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+            className={`px-2 sm:px-2.5 py-1.5 rounded-lg font-medium transition-all shrink-0 min-h-[32px] ${
               activePreset === key
                 ? 'bg-indigo-600 text-white shadow-xs'
                 : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
             }`}
             title={title}
           >
-            {label}
+            <span className="sm:hidden">{shortLabel}</span>
+            <span className="hidden sm:inline">{fullLabel}</span>
           </button>
         ))}
 
-        <div className="w-[1px] h-4 bg-stone-300 dark:bg-stone-700 mx-0.5" />
+        <div className="w-[1px] h-4 bg-stone-300 dark:bg-stone-700 mx-0.5 shrink-0" />
 
         {/* Auto-Rotate Toggle */}
         <button
           type="button"
           onClick={() => setAutoRotate(!autoRotate)}
-          className={`px-2.5 py-1 rounded-lg font-medium flex items-center gap-1 transition-all ${
+          className={`px-2 sm:px-2.5 py-1.5 rounded-lg font-medium flex items-center gap-1 transition-all shrink-0 min-h-[32px] ${
             autoRotate
               ? 'bg-amber-500 text-white shadow-xs'
               : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
@@ -825,12 +826,12 @@ export const MoonOrbit3D: React.FC<MoonOrbit3DProps> = ({
           >
             <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
           </svg>
-          <span>Spin</span>
+          <span className="hidden sm:inline">Spin</span>
         </button>
       </div>
 
-      {/* ── Tilt Info Card (Top Left) ── */}
-      <div className="absolute top-3 left-3 bg-white/85 dark:bg-stone-900/85 backdrop-blur-md px-3 py-2 rounded-xl border border-stone-200/80 dark:border-stone-800 shadow-sm z-10 pointer-events-none text-[11px]">
+      {/* ── Tilt Info Card (Top Left) - Hidden on extra small mobile screens ── */}
+      <div className="hidden sm:block absolute top-3 left-3 bg-white/85 dark:bg-stone-900/85 backdrop-blur-md px-3 py-2 rounded-xl border border-stone-200/80 dark:border-stone-800 shadow-sm z-10 pointer-events-none text-[11px]">
         <div className="font-semibold text-stone-800 dark:text-stone-100 mb-0.5">
           Moon Orbit — 3D
         </div>
@@ -841,7 +842,7 @@ export const MoonOrbit3D: React.FC<MoonOrbit3DProps> = ({
       </div>
 
       {/* ── Interaction Hint (Bottom Center) ── */}
-      <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 bg-black/40 text-white/90 text-[10px] px-3 py-1 rounded-full backdrop-blur-xs pointer-events-none tracking-wide flex items-center gap-1.5">
+      <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 bg-black/50 text-white/90 text-[10px] px-3 py-1 rounded-full backdrop-blur-xs pointer-events-none tracking-wide flex items-center gap-1.5 whitespace-nowrap">
         <svg
           width="11"
           height="11"
@@ -855,7 +856,8 @@ export const MoonOrbit3D: React.FC<MoonOrbit3DProps> = ({
           <circle cx="12" cy="12" r="10" />
           <path d="m10 8 4 4-4 4" />
         </svg>
-        <span>Drag to orbit 360° • Scroll to zoom</span>
+        <span className="hidden sm:inline">Drag to orbit 360° • Scroll to zoom</span>
+        <span className="sm:hidden">Drag to orbit • Pinch to zoom</span>
       </div>
     </div>
   );

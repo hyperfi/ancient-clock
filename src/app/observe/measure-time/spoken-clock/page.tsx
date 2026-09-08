@@ -195,13 +195,13 @@ export default function SpokenClockPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FEFDF5] dark:bg-[#0C0A09] text-[#1C1917] dark:text-[#F5F5F4] p-6 md:p-12 flex flex-col items-center transition-colors duration-300">
+    <div className="min-h-screen bg-[#FEFDF5] dark:bg-[#0C0A09] text-[#1C1917] dark:text-[#F5F5F4] p-4 sm:p-6 md:p-12 flex flex-col items-center transition-colors duration-300">
       
       <div className="max-w-3xl w-full text-center mb-8">
         <div className="flex justify-start mb-4">
           <a 
             href="/observe/measure-time" 
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline uppercase tracking-wider"
+            className="inline-flex items-center gap-1.5 py-2 px-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline uppercase tracking-wider min-h-[44px]"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -209,13 +209,13 @@ export default function SpokenClockPage() {
             Back to Measure Time
           </a>
         </div>
-        <h1 className="text-4xl font-serif mb-2 text-[#1C1917] dark:text-stone-100">The Spoken Clock</h1>
-        <div className="text-xl text-stone-600 dark:text-stone-400 font-light flex items-center justify-center gap-3 mb-6">
+        <h1 className="text-3xl sm:text-4xl font-serif mb-2 text-[#1C1917] dark:text-stone-100">The Spoken Clock</h1>
+        <div className="text-lg sm:text-xl text-stone-600 dark:text-stone-400 font-light flex items-center justify-center gap-3 mb-6">
           Calibrating Time with Sanskrit Syllables
           <ProvenanceLabel type="scholarly" />
         </div>
         
-        <div className="text-left bg-white dark:bg-[#141210] p-5 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm flex items-start gap-4">
+        <div className="text-left bg-white dark:bg-[#141210] p-4 sm:p-5 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm flex items-start gap-4">
           <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed">
             Bhāskara I describes calibrating time intervals by reciting long (<i className="text-stone-800 dark:text-stone-200">guru</i>) syllables at a measured pace. 
             60 <i>guru-akṣaras</i> at middling speed should take exactly one <i>pala</i> — 24 seconds. 
@@ -232,44 +232,45 @@ export default function SpokenClockPage() {
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-12 w-full max-w-4xl justify-center items-start">
+      <div className="flex flex-col md:flex-row gap-8 sm:gap-12 w-full max-w-4xl justify-center items-start">
         
         {/* Left: Visualization */}
-        <div className="flex-1 flex flex-col items-center">
-          <div className="relative flex justify-center items-center">
-            <svg width={ringSize} height={ringSize} className="relative z-10">
+        <div className="flex-1 w-full flex flex-col items-center">
+          <div className="relative w-full max-w-[340px] aspect-square flex justify-center items-center">
+            <svg viewBox={`0 0 ${ringSize} ${ringSize}`} className="w-full h-full relative z-10">
               {renderDots()}
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20">
-              <div className="text-sm text-stone-500 uppercase tracking-wider mb-1">Elapsed</div>
-              <div className="text-4xl font-mono text-[#D97706] mb-1">
+              <div className="text-xs sm:text-sm text-stone-500 uppercase tracking-wider mb-1">Elapsed</div>
+              <div className="text-3xl sm:text-4xl font-mono text-[#D97706] mb-1">
                 {elapsedTime.toFixed(2)}s
               </div>
-              <div className="text-sm text-stone-400 font-mono">
+              <div className="text-xs sm:text-sm text-stone-400 font-mono">
                 Target: 24.00s
               </div>
             </div>
           </div>
           
-          <div className="mt-8 flex gap-4 w-full justify-center">
+          <div className="mt-8 flex flex-wrap sm:flex-nowrap gap-3 w-full max-w-[360px] sm:max-w-none justify-center items-center">
             <button 
               onClick={handleTap}
               disabled={isSimulating || (activeDots >= 60 && !finalTime)}
-              className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium shadow-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 sm:flex-none px-5 py-3 min-h-[48px] bg-indigo-600 text-white rounded-lg font-medium shadow-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm sm:text-base text-center"
             >
               {activeDots === 0 ? "Tap to Start (0/60)" : `Tap (${activeDots}/60)`}
             </button>
             <button 
               onClick={handleSimulate}
               disabled={isSimulating}
-              className="px-6 py-3 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 rounded-lg font-medium shadow-sm hover:bg-stone-50 dark:hover:bg-stone-800 disabled:opacity-50 transition-colors"
+              className="flex-1 sm:flex-none px-5 py-3 min-h-[48px] bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 rounded-lg font-medium shadow-sm hover:bg-stone-50 dark:hover:bg-stone-800 disabled:opacity-50 transition-colors text-sm sm:text-base text-center"
             >
-              Simulate Recitation
+              Simulate
             </button>
             <button 
               onClick={handleReset}
-              className="px-4 py-3 text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 transition-colors"
+              className="p-3 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-lg border border-stone-200 dark:border-stone-800 text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
               title="Reset"
+              aria-label="Reset"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />

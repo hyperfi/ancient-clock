@@ -104,6 +104,7 @@ export default function SunShadowPage() {
   const [isHistorical, setIsHistorical] = useState<boolean>(true);
   const [viewMode, setViewMode] = useState<'elevation' | 'ground'>('elevation');
   const [activeTab, setActiveTab] = useState<'time' | 'latitude'>('time');
+  const [isMobileControlsOpen, setIsMobileControlsOpen] = useState<boolean>(false);
 
   // Interactive Challenge Mode
   const [challengeMode, setChallengeMode] = useState<boolean>(false);
@@ -432,35 +433,150 @@ export default function SunShadowPage() {
         {/* Left Column: Visualizer & Interactive Panels */}
         <div className="lg:col-span-8 flex flex-col gap-6">
           
+          {/* Mobile Observation Controls Summary & Accordion Toggle */}
+          <div className="lg:hidden bg-white dark:bg-[#141210] border border-stone-200 dark:border-stone-800 rounded-xl p-3.5 shadow-sm">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                <span className="font-semibold text-stone-800 dark:text-stone-200 flex items-center gap-1">
+                  📍 {CITIES.find(c => c.id === cityId)?.name.split(' ')[0] || 'Custom'} ({lat.toFixed(1)}°N)
+                </span>
+                <span className="text-stone-300 dark:text-stone-700">•</span>
+                <span className="text-stone-600 dark:text-stone-400">📅 {dateStr}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMobileControlsOpen(!isMobileControlsOpen)}
+                className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/80 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-colors flex items-center gap-1 min-h-[36px]"
+              >
+                <span>⚙️ Settings</span>
+                <span className="text-[10px]">{isMobileControlsOpen ? '▲' : '▼'}</span>
+              </button>
+            </div>
+
+            {isMobileControlsOpen && (
+              <div className="mt-3 pt-3 border-t border-stone-100 dark:border-stone-800 space-y-4">
+                {/* City Presets */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-stone-600 dark:text-stone-400">Observatory Location (Deśa):</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                    {CITIES.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => handleCityChange(c.id)}
+                        className={`px-2.5 py-2 rounded-lg text-xs font-medium text-left border transition-all truncate min-h-[40px] ${
+                          cityId === c.id
+                            ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-semibold'
+                            : 'border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-900 text-stone-700 dark:text-stone-300'
+                        }`}
+                      >
+                        {c.name.split(' ')[0]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Latitude Slider */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-stone-500">Latitude (Akṣāṅśa):</span>
+                    <span className="font-mono font-semibold text-stone-800 dark:text-stone-200">{lat.toFixed(2)}° N</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="50"
+                    step="0.1"
+                    value={lat}
+                    onChange={(e) => handleCustomLat(Number(e.target.value))}
+                    className="w-full accent-amber-600 h-2 bg-stone-200 dark:bg-stone-700 rounded cursor-pointer"
+                  />
+                </div>
+
+                {/* Date Picker & Seasons */}
+                <div className="space-y-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+                  <div className="flex justify-between items-center text-xs">
+                    <label className="font-medium text-stone-600 dark:text-stone-400">Date (Tithi/Date):</label>
+                    <input
+                      type="date"
+                      value={dateStr}
+                      onChange={(e) => setDateStr(e.target.value)}
+                      className="text-sm px-2.5 py-1.5 border border-stone-200 dark:border-stone-700 rounded bg-stone-50 dark:bg-stone-900 text-stone-800 dark:text-stone-200 min-h-[38px]"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleSeasonShortcut('2026-03-21')}
+                      className={`px-2.5 py-1.5 text-xs rounded border transition-colors min-h-[36px] ${
+                        dateStr === '2026-03-21'
+                          ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-semibold'
+                          : 'border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-900'
+                      }`}
+                    >
+                      🌸 Equinox
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSeasonShortcut('2026-06-21')}
+                      className={`px-2.5 py-1.5 text-xs rounded border transition-colors min-h-[36px] ${
+                        dateStr === '2026-06-21'
+                          ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-semibold'
+                          : 'border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-900'
+                      }`}
+                    >
+                      ☀️ Solstice (Jun)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSeasonShortcut('2026-12-21')}
+                      className={`px-2.5 py-1.5 text-xs rounded border transition-colors min-h-[36px] ${
+                        dateStr === '2026-12-21'
+                          ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-semibold'
+                          : 'border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-900'
+                      }`}
+                    >
+                      ❄️ Solstice (Dec)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Visualizer Card */}
           <div className="bg-[#FEFDF5] dark:bg-[#141210] border border-stone-200 dark:border-stone-800 rounded-xl shadow-sm overflow-hidden flex flex-col">
             
             {/* Canvas Header: View Switcher & Scene Metadata */}
-            <div className="flex flex-wrap items-center justify-between px-5 py-3 border-b border-stone-200 dark:border-stone-800 bg-stone-50/60 dark:bg-stone-900/40 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-stone-500 dark:text-stone-400">View:</span>
+            <div className="flex flex-wrap items-center justify-between gap-2.5 px-3 sm:px-5 py-2.5 sm:py-3 border-b border-stone-200 dark:border-stone-800 bg-stone-50/60 dark:bg-stone-900/40 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-medium text-stone-500 dark:text-stone-400 hidden xs:inline">View:</span>
                 <div className="inline-flex rounded-lg bg-stone-200/70 dark:bg-stone-800 p-0.5">
                   <button
                     type="button"
                     onClick={() => setViewMode('elevation')}
-                    className={`px-3 py-1 rounded-md font-medium transition-all ${
+                    className={`px-2.5 sm:px-3 py-1.5 rounded-md font-medium transition-all ${
                       viewMode === 'elevation'
-                        ? 'bg-white dark:bg-stone-900 text-amber-600 dark:text-amber-400 shadow-sm'
+                        ? 'bg-white dark:bg-stone-900 text-amber-600 dark:text-amber-400 shadow-sm font-semibold'
                         : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
                     }`}
                   >
-                    📐 Elevation Triangle
+                    <span>📐 </span>
+                    <span className="hidden sm:inline">Elevation Triangle</span>
+                    <span className="sm:hidden">Elevation</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setViewMode('ground')}
-                    className={`px-3 py-1 rounded-md font-medium transition-all ${
+                    className={`px-2.5 sm:px-3 py-1.5 rounded-md font-medium transition-all ${
                       viewMode === 'ground'
-                        ? 'bg-white dark:bg-stone-900 text-amber-600 dark:text-amber-400 shadow-sm'
+                        ? 'bg-white dark:bg-stone-900 text-amber-600 dark:text-amber-400 shadow-sm font-semibold'
                         : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
                     }`}
                   >
-                    🧭 Bha-Maṇḍala (Compass Plane)
+                    <span>🧭 </span>
+                    <span className="hidden sm:inline">Bha-Maṇḍala (Compass)</span>
+                    <span className="sm:hidden">Compass</span>
                   </button>
                 </div>
 
@@ -468,19 +584,20 @@ export default function SunShadowPage() {
                 <button
                   type="button"
                   onClick={() => setIsAutoPlay(!isAutoPlay)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm min-h-[34px] ${
                     isAutoPlay
                       ? 'bg-amber-500 text-stone-950 font-bold ring-2 ring-amber-400 shadow-amber-500/20'
                       : 'bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-700 border border-stone-300 dark:border-stone-700'
                   }`}
                   title={isAutoPlay ? 'Pause sun movement' : 'Play continuous diurnal sun movement'}
                 >
-                  <span>{isAutoPlay ? '⏸ Pause' : '▶ Auto-Play'}</span>
+                  <span>{isAutoPlay ? '⏸' : '▶'}</span>
+                  <span className="hidden xs:inline">{isAutoPlay ? 'Pause' : 'Auto-Play'}</span>
                 </button>
               </div>
 
-              <div className="flex items-center gap-3 text-stone-600 dark:text-stone-300 font-mono">
-                <span>{challengeMode && !showAnswer ? '??:??' : timeStr}</span>
+              <div className="flex items-center gap-2 sm:gap-3 text-stone-600 dark:text-stone-300 font-mono text-[11px] sm:text-xs">
+                <span className="font-bold text-amber-600 dark:text-amber-400">{challengeMode && !showAnswer ? '??:??' : timeStr}</span>
                 <span className="text-stone-300 dark:text-stone-700">|</span>
                 <span>h = {isNight ? '0.0°' : clampedAltitude.toFixed(1) + '°'}</span>
                 <span className="text-stone-300 dark:text-stone-700">|</span>
@@ -489,7 +606,7 @@ export default function SunShadowPage() {
             </div>
 
             {/* SVG Visual Canvas */}
-            <div className="w-full relative aspect-[16/10] bg-stone-900 select-none overflow-hidden">
+            <div className={`w-full relative ${viewMode === 'elevation' ? 'aspect-[16/10]' : 'aspect-square max-w-[500px] mx-auto'} bg-stone-900 select-none overflow-hidden transition-all duration-300`}>
               {viewMode === 'elevation' ? (
                 <svg 
                   ref={svgRef}
@@ -1222,31 +1339,33 @@ export default function SunShadowPage() {
           </div>
 
           {/* Interactive Pedagogical Tabs */}
-          <div className="bg-white dark:bg-[#141210] border border-stone-200 dark:border-stone-800 rounded-xl p-6 shadow-sm flex flex-col gap-6">
+          <div className="bg-white dark:bg-[#141210] border border-stone-200 dark:border-stone-800 rounded-xl p-4 sm:p-6 shadow-sm flex flex-col gap-6">
             
             {/* Tab Buttons */}
-            <div className="flex border-b border-stone-200 dark:border-stone-800 gap-4 pb-2">
+            <div className="flex overflow-x-auto scrollbar-none whitespace-nowrap border-b border-stone-200 dark:border-stone-800 gap-3 sm:gap-4 pb-2">
               <button
                 type="button"
                 onClick={() => setActiveTab('time')}
-                className={`pb-2 px-1 font-semibold text-sm border-b-2 transition-colors ${
+                className={`pb-2 px-1 font-semibold text-xs sm:text-sm border-b-2 transition-colors min-h-[42px] flex items-center shrink-0 ${
                   activeTab === 'time'
                     ? 'border-amber-600 text-amber-700 dark:text-amber-400'
                     : 'border-transparent text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
                 }`}
               >
-                ⏳ 1. Kāla-Jñāna (Time from Shadow)
+                <span>⏳ 1. Kāla-Jñāna </span>
+                <span className="hidden sm:inline">(Time from Shadow)</span>
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('latitude')}
-                className={`pb-2 px-1 font-semibold text-sm border-b-2 transition-colors ${
+                className={`pb-2 px-1 font-semibold text-xs sm:text-sm border-b-2 transition-colors min-h-[42px] flex items-center shrink-0 ${
                   activeTab === 'latitude'
                     ? 'border-amber-600 text-amber-700 dark:text-amber-400'
                     : 'border-transparent text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
                 }`}
               >
-                🌐 2. Deśa-Jñāna (Latitude from Palabhā)
+                <span>🌐 2. Deśa-Jñāna </span>
+                <span className="hidden sm:inline">(Latitude from Palabhā)</span>
               </button>
             </div>
 
@@ -1261,13 +1380,13 @@ export default function SunShadowPage() {
                 </div>
 
                 {/* Unified Player & Diurnal Time Scrubber Bar */}
-                <div className="flex flex-col gap-3 bg-stone-50 dark:bg-stone-900/50 p-4 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-2.5">
+                <div className="flex flex-col gap-3 bg-stone-50 dark:bg-stone-900/50 p-3 sm:p-4 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+                    <div className="flex items-center gap-2 sm:gap-2.5">
                       <button
                         type="button"
                         onClick={() => setIsAutoPlay(!isAutoPlay)}
-                        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm ${
+                        className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm min-h-[38px] ${
                           isAutoPlay 
                             ? 'bg-amber-500 text-stone-950 font-bold ring-2 ring-amber-400 shadow-amber-500/20' 
                             : 'bg-amber-600 text-white hover:bg-amber-700 shadow-sm'
@@ -1276,36 +1395,55 @@ export default function SunShadowPage() {
                       >
                         <span>{isAutoPlay ? '⏸ Pause' : '▶ Auto-Play'}</span>
                       </button>
-                      <span className="text-xs text-stone-500 dark:text-stone-400">
-                        {isAutoPlay ? 'Simulating diurnal cycle...' : 'Manual time control'}
+                      <span className="text-xs text-stone-500 dark:text-stone-400 hidden xs:inline">
+                        {isAutoPlay ? 'Simulating...' : 'Manual control'}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
                       <span className="text-xs font-medium text-stone-500 dark:text-stone-400">Time:</span>
-                      <span className="text-sm text-amber-700 dark:text-amber-400 font-mono font-bold bg-amber-50 dark:bg-amber-950/50 px-2.5 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                      <span className="text-xs sm:text-sm text-amber-700 dark:text-amber-400 font-mono font-bold bg-amber-50 dark:bg-amber-950/50 px-2 sm:px-2.5 py-0.5 rounded border border-amber-200 dark:border-amber-800">
                         {challengeMode && !showAnswer ? '??:??' : timeStr}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center text-xs font-medium text-stone-500 dark:text-stone-400 pt-1">
+                  <div className="flex justify-between items-center text-[11px] sm:text-xs font-medium text-stone-500 dark:text-stone-400 pt-1">
                     <span className="flex items-center gap-1">🌅 Sunrise ({formatHourToTime(sunrise)})</span>
                     <span className="flex items-center gap-1">🌇 Sunset ({formatHourToTime(sunset)})</span>
                   </div>
 
-                  <input
-                    type="range"
-                    min="4.5"
-                    max="19.5"
-                    step="0.02"
-                    value={timeOfDay}
-                    onChange={(e) => {
-                      setIsAutoPlay(false);
-                      setTimeOfDay(Number(e.target.value));
-                    }}
-                    className="w-full accent-amber-600 cursor-pointer h-2 bg-stone-200 dark:bg-stone-700 rounded-lg"
-                  />
+                  {/* Scrubber with Steppers */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { setIsAutoPlay(false); setTimeOfDay(prev => Math.max(sunrise, Number((prev - 0.25).toFixed(2)))); }}
+                      className="px-2 py-1.5 bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded text-xs font-semibold min-h-[38px] min-w-[40px] transition-colors"
+                      title="-15 minutes"
+                    >
+                      -15m
+                    </button>
+                    <input
+                      type="range"
+                      min="4.5"
+                      max="19.5"
+                      step="0.02"
+                      value={timeOfDay}
+                      onChange={(e) => {
+                        setIsAutoPlay(false);
+                        setTimeOfDay(Number(e.target.value));
+                      }}
+                      className="flex-1 accent-amber-600 cursor-pointer h-2.5 bg-stone-200 dark:bg-stone-700 rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setIsAutoPlay(false); setTimeOfDay(prev => Math.min(sunset, Number((prev + 0.25).toFixed(2)))); }}
+                      className="px-2 py-1.5 bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded text-xs font-semibold min-h-[38px] min-w-[40px] transition-colors"
+                      title="+15 minutes"
+                    >
+                      +15m
+                    </button>
+                  </div>
 
                   {/* Quick Snap Buttons */}
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-200/60 dark:border-stone-800/60">
@@ -1314,35 +1452,35 @@ export default function SunShadowPage() {
                       <button
                         type="button"
                         onClick={() => { setIsAutoPlay(false); setTimeOfDay(sunrise + 0.2); }}
-                        className="px-2 py-1 text-xs rounded bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors"
+                        className="px-2.5 py-1.5 text-xs rounded bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors min-h-[36px]"
                       >
                         🌅 Sunrise
                       </button>
                       <button
                         type="button"
                         onClick={() => { setIsAutoPlay(false); setTimeOfDay(9.0); }}
-                        className="px-2 py-1 text-xs rounded bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors"
+                        className="px-2.5 py-1.5 text-xs rounded bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors min-h-[36px]"
                       >
-                        ☀️ 9:00 AM (Prātaḥ)
+                        ☀️ 9:00 AM
                       </button>
                       <button
                         type="button"
                         onClick={() => { setIsAutoPlay(false); setTimeOfDay(12.0); }}
-                        className="px-2 py-1 text-xs rounded bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors"
+                        className="px-2.5 py-1.5 text-xs rounded bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors min-h-[36px]"
                       >
-                        🕛 Noon (Madhyāhna)
+                        🕛 Noon
                       </button>
                       <button
                         type="button"
                         onClick={() => { setIsAutoPlay(false); setTimeOfDay(15.0); }}
-                        className="px-2 py-1 text-xs rounded bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors"
+                        className="px-2.5 py-1.5 text-xs rounded bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors min-h-[36px]"
                       >
-                        🌤️ 3:00 PM (Aparāhna)
+                        🌤️ 3:00 PM
                       </button>
                       <button
                         type="button"
                         onClick={() => { setIsAutoPlay(false); setTimeOfDay(sunset - 0.2); }}
-                        className="px-2 py-1 text-xs rounded bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors"
+                        className="px-2.5 py-1.5 text-xs rounded bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors min-h-[36px]"
                       >
                         🌇 Sunset
                       </button>
@@ -1515,7 +1653,7 @@ export default function SunShadowPage() {
 
                 {/* Historical City Palabhā Comparison Table */}
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border border-stone-200 dark:border-stone-800 rounded-lg overflow-hidden">
+                  <table className="w-full min-w-[560px] text-left text-xs border border-stone-200 dark:border-stone-800 rounded-lg overflow-hidden">
                     <thead className="bg-stone-100 dark:bg-stone-800/60 font-semibold text-stone-700 dark:text-stone-300">
                       <tr>
                         <th className="p-2.5">Historical Center</th>
@@ -1566,7 +1704,7 @@ export default function SunShadowPage() {
                     key={c.id}
                     type="button"
                     onClick={() => handleCityChange(c.id)}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium text-left border transition-all truncate ${
+                    className={`px-2.5 py-2 rounded-lg text-xs font-medium text-left border transition-all truncate min-h-[38px] ${
                       cityId === c.id
                         ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-semibold'
                         : 'border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-900 text-stone-700 dark:text-stone-300'
@@ -1579,7 +1717,7 @@ export default function SunShadowPage() {
             </div>
 
             {/* Latitude Slider */}
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1.5">
               <div className="flex justify-between text-xs">
                 <span className="text-stone-500">Latitude (Akṣāṅśa):</span>
                 <span className="font-mono font-semibold text-stone-800 dark:text-stone-200">{lat.toFixed(2)}° N</span>
@@ -1591,19 +1729,19 @@ export default function SunShadowPage() {
                 step="0.1"
                 value={lat}
                 onChange={(e) => handleCustomLat(Number(e.target.value))}
-                className="w-full accent-amber-600 h-1.5 bg-stone-200 dark:bg-stone-700 rounded cursor-pointer"
+                className="w-full accent-amber-600 h-2 bg-stone-200 dark:bg-stone-700 rounded cursor-pointer"
               />
             </div>
 
             {/* Date Selection & Season Shortcuts */}
-            <div className="flex flex-col gap-1.5 pt-2 border-t border-stone-100 dark:border-stone-800">
+            <div className="flex flex-col gap-2 pt-2 border-t border-stone-100 dark:border-stone-800">
               <div className="flex justify-between items-center text-xs">
                 <label className="font-medium text-stone-600 dark:text-stone-400">Date (Tithi/Date):</label>
                 <input
                   type="date"
                   value={dateStr}
                   onChange={(e) => setDateStr(e.target.value)}
-                  className="text-xs px-2 py-1 border border-stone-200 dark:border-stone-700 rounded bg-stone-50 dark:bg-stone-900 text-stone-800 dark:text-stone-200"
+                  className="text-sm px-2.5 py-1.5 border border-stone-200 dark:border-stone-700 rounded bg-stone-50 dark:bg-stone-900 text-stone-800 dark:text-stone-200 min-h-[36px]"
                 />
               </div>
 
@@ -1612,7 +1750,7 @@ export default function SunShadowPage() {
                 <button
                   type="button"
                   onClick={() => handleSeasonShortcut('2026-03-21')}
-                  className={`px-2 py-1 text-[11px] rounded border transition-colors ${
+                  className={`px-2.5 py-1.5 text-xs rounded border transition-colors min-h-[34px] ${
                     dateStr === '2026-03-21'
                       ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-semibold'
                       : 'border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-900'
@@ -1623,7 +1761,7 @@ export default function SunShadowPage() {
                 <button
                   type="button"
                   onClick={() => handleSeasonShortcut('2026-06-21')}
-                  className={`px-2 py-1 text-[11px] rounded border transition-colors ${
+                  className={`px-2.5 py-1.5 text-xs rounded border transition-colors min-h-[34px] ${
                     dateStr === '2026-06-21'
                       ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-semibold'
                       : 'border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-900'

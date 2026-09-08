@@ -549,7 +549,7 @@ export default function AccuracyLabPage() {
                   type="button"
                   disabled={currentStep <= 1}
                   onClick={() => setCurrentStep((p) => p - 1)}
-                  className="px-3 py-1.5 text-xs rounded border border-stone-300 dark:border-stone-700 disabled:opacity-40 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200 transition-colors"
+                  className="px-3.5 py-2 text-xs sm:text-sm rounded-lg border border-stone-300 dark:border-stone-700 disabled:opacity-40 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200 transition-colors min-h-[38px]"
                 >
                   Previous
                 </button>
@@ -557,27 +557,33 @@ export default function AccuracyLabPage() {
                   type="button"
                   disabled={currentStep >= guidedSteps.length}
                   onClick={() => setCurrentStep((p) => p + 1)}
-                  className="px-4 py-1.5 text-xs rounded bg-indigo-600 dark:bg-indigo-500 text-white disabled:opacity-40 hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors"
+                  className="px-4 py-2 text-xs sm:text-sm rounded-lg bg-indigo-600 dark:bg-indigo-500 text-white disabled:opacity-40 hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors min-h-[38px] font-medium"
                 >
                   Next Step
                 </button>
               </div>
             </div>
 
-            {/* Step Progress Bar */}
-            <div className="flex gap-1.5">
+            {/* Step Progress Bar with Accessible Touch Targets */}
+            <div className="flex items-center gap-1.5 py-1">
               {guidedSteps.map((s) => (
-                <div
+                <button
                   key={s.num}
+                  type="button"
                   onClick={() => setCurrentStep(s.num)}
-                  className={`flex-1 h-2 rounded-full cursor-pointer transition-colors ${
-                    s.num === currentStep
-                      ? 'bg-amber-600'
-                      : s.num < currentStep
-                      ? 'bg-indigo-600 dark:bg-indigo-400'
-                      : 'bg-stone-200 dark:bg-stone-800'
-                  }`}
-                />
+                  aria-label={`Step ${s.num}: ${s.title}`}
+                  className="flex-1 py-3 group focus:outline-hidden"
+                >
+                  <div
+                    className={`h-2.5 sm:h-2 rounded-full transition-all ${
+                      s.num === currentStep
+                        ? 'bg-amber-600 ring-2 ring-amber-500/40'
+                        : s.num < currentStep
+                        ? 'bg-indigo-600 dark:bg-indigo-400'
+                        : 'bg-stone-200 dark:bg-stone-800 group-hover:bg-stone-300'
+                    }`}
+                  />
+                </button>
               ))}
             </div>
 

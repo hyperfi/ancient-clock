@@ -20,7 +20,7 @@ export function ModuleLayout({
       className={`flex flex-col min-h-[calc(100vh-3.5rem)] bg-[#FEFDF5] dark:bg-[#0C0A09] text-[#1C1917] dark:text-[#F5F5F4] transition-colors ${className}`}
     >
       {/* Header */}
-      <header className="flex-none px-4 sm:px-6 py-4 border-b border-stone-200 dark:border-stone-800 bg-[#FEFDF5]/95 dark:bg-[#0C0A09]/95 sticky top-14 z-20 backdrop-blur flex items-center justify-between">
+      <header className="flex-none px-4 sm:px-6 py-3 sm:py-4 border-b border-stone-200 dark:border-stone-800 bg-[#FEFDF5]/95 dark:bg-[#0C0A09]/95 static md:sticky md:top-14 z-20 backdrop-blur flex items-center justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#1C1917] dark:text-[#F5F5F4]">
             {title}

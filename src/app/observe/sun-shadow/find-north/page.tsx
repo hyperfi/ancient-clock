@@ -133,31 +133,31 @@ export default function FindNorthPage() {
             <svg viewBox="0 0 800 600" className="w-full h-full">
               {/* True N-S / E-W crosshairs */}
               {/* Crosshair */}
-              <line x1="400" y1="0" x2="400" y2="600" stroke="currentColor" className="text-stone-200 dark:text-stone-800" strokeWidth="1" strokeDasharray="4 4" />
-              <line x1="0" y1="300" x2="800" y2="300" stroke="currentColor" className="text-stone-200 dark:text-stone-800" strokeWidth="1" strokeDasharray="4 4" />
-              <text x="405" y="20" fontSize="12" fill="currentColor" className="text-stone-400 dark:text-stone-500">True N</text>
+              <line x1="400" y1="0" x2="400" y2="600" stroke="currentColor" className="text-stone-200 dark:text-stone-800" strokeWidth="1.5" strokeDasharray="4 4" />
+              <line x1="0" y1="300" x2="800" y2="300" stroke="currentColor" className="text-stone-200 dark:text-stone-800" strokeWidth="1.5" strokeDasharray="4 4" />
+              <text x="408" y="26" fontSize="16" fontWeight="bold" fill="currentColor" className="text-stone-400 dark:text-stone-500">True N</text>
 
               {/* Circle */}
               {step >= 1 && (
-                <circle cx={originX} cy={originY} r={rad} fill="none" stroke="currentColor" className="text-stone-300 dark:text-stone-700" strokeWidth="2" />
+                <circle cx={originX} cy={originY} r={rad} fill="none" stroke="currentColor" className="text-stone-300 dark:text-stone-700" strokeWidth="2.5" />
               )}
               
               {/* Shadow Path */}
               {mode === 'construction' ? (
-                 <path d={pathD} fill="none" stroke="#D97706" strokeWidth="1.5" strokeDasharray="3 3" opacity={step >= 2 ? 0.8 : 0} />
+                 <path d={pathD} fill="none" stroke="#D97706" strokeWidth="2" strokeDasharray="4 4" opacity={step >= 2 ? 0.85 : 0} />
               ) : (
-                 <path d={pathD} fill="none" stroke="#D97706" strokeWidth="1.5" />
+                 <path d={pathD} fill="none" stroke="#D97706" strokeWidth="2" />
               )}
 
               {/* Gnomon base */}
-              {step >= 0 && <circle cx={originX} cy={originY} r="4" fill="currentColor" className="text-stone-900 dark:text-stone-100" />}
+              {step >= 0 && <circle cx={originX} cy={originY} r="6" fill="currentColor" className="text-stone-900 dark:text-stone-100" />}
 
               {/* Crossings */}
               {step >= 2 && crossings.morning && (
-                <circle cx={toSvg(crossings.morning).x} cy={toSvg(crossings.morning).y} r="5" fill="#4338CA" />
+                <circle cx={toSvg(crossings.morning).x} cy={toSvg(crossings.morning).y} r="7" fill="#4338CA" />
               )}
               {step >= 3 && crossings.afternoon && (
-                <circle cx={toSvg(crossings.afternoon).x} cy={toSvg(crossings.afternoon).y} r="5" fill="#4338CA" />
+                <circle cx={toSvg(crossings.afternoon).x} cy={toSvg(crossings.afternoon).y} r="7" fill="#4338CA" />
               )}
 
               {/* E-W Line */}
@@ -167,15 +167,15 @@ export default function FindNorthPage() {
                   y1={toSvg(crossings.morning).y - ewLine!.dy * 0.5 * scale} 
                   x2={toSvg(crossings.afternoon).x + ewLine!.dx * 0.5 * scale} 
                   y2={toSvg(crossings.afternoon).y + ewLine!.dy * 0.5 * scale} 
-                  stroke="#4338CA" strokeWidth="2" 
+                  stroke="#4338CA" strokeWidth="2.5" 
                 />
               )}
 
               {/* Fish figure (Timi) */}
               {step >= 5 && crossings.morning && crossings.afternoon && (
                 <>
-                  <circle cx={toSvg(crossings.morning).x} cy={toSvg(crossings.morning).y} r={rad * 1.5} fill="none" stroke="currentColor" className="text-stone-400 dark:text-stone-600" strokeWidth="1" strokeDasharray="4 4" />
-                  <circle cx={toSvg(crossings.afternoon).x} cy={toSvg(crossings.afternoon).y} r={rad * 1.5} fill="none" stroke="currentColor" className="text-stone-400 dark:text-stone-600" strokeWidth="1" strokeDasharray="4 4" />
+                  <circle cx={toSvg(crossings.morning).x} cy={toSvg(crossings.morning).y} r={rad * 1.5} fill="none" stroke="currentColor" className="text-stone-400 dark:text-stone-600" strokeWidth="1.5" strokeDasharray="4 4" />
+                  <circle cx={toSvg(crossings.afternoon).x} cy={toSvg(crossings.afternoon).y} r={rad * 1.5} fill="none" stroke="currentColor" className="text-stone-400 dark:text-stone-600" strokeWidth="1.5" strokeDasharray="4 4" />
                 </>
               )}
 
@@ -197,22 +197,19 @@ export default function FindNorthPage() {
                 />
               )}
             </svg>
-            <div className="absolute top-4 left-4">
-              <ProvenanceLabel type="documented" />
-            </div>
           </div>
-          
-          <div className="bg-white dark:bg-[#141210] p-6 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col gap-4">
-            <div className="flex gap-4 mb-4 border-b border-stone-100 dark:border-stone-800 pb-4">
+
+          <div className="bg-white dark:bg-[#141210] p-4 sm:p-6 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col gap-4">
+            <div className="flex flex-wrap gap-2.5 sm:gap-4 mb-2 sm:mb-4 border-b border-stone-100 dark:border-stone-800 pb-4">
               <button 
                 onClick={() => setMode('construction')}
-                className={`px-4 py-2 text-sm font-medium rounded transition-colors ${mode === 'construction' ? 'bg-[#4338CA] text-white' : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'}`}
+                className={`px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors min-h-[40px] ${mode === 'construction' ? 'bg-[#4338CA] text-white' : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'}`}
               >
                 Show Construction
               </button>
               <button 
                 onClick={() => { setMode('try'); setStep(6); }}
-                className={`px-4 py-2 text-sm font-medium rounded transition-colors ${mode === 'try' ? 'bg-[#4338CA] text-white' : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'}`}
+                className={`px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors min-h-[40px] ${mode === 'try' ? 'bg-[#4338CA] text-white' : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'}`}
               >
                 Try Yourself (Full View)
               </button>
@@ -220,12 +217,12 @@ export default function FindNorthPage() {
             
             {mode === 'construction' ? (
               <div className="flex flex-col gap-4">
-                <div className="h-12 flex items-center justify-center bg-stone-50 dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-800 font-medium text-stone-800 dark:text-stone-200 px-4 text-center text-sm">
+                <div className="min-h-[48px] py-2.5 flex items-center justify-center bg-stone-50 dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-800 font-medium text-stone-800 dark:text-stone-200 px-4 text-center text-xs sm:text-sm">
                   Step {step + 1}: {steps[step]}
                 </div>
-                <div className="flex justify-between">
-                  <button disabled={step === 0} onClick={() => setStep(s => s - 1)} className="px-4 py-2 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 rounded-lg disabled:opacity-50 text-sm hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors">Previous</button>
-                  <button disabled={step === steps.length - 1} onClick={() => setStep(s => s + 1)} className="px-4 py-2 bg-[#4338CA] text-white rounded-lg disabled:opacity-50 text-sm hover:bg-[#3730A3] transition-colors">Next</button>
+                <div className="flex justify-between gap-3">
+                  <button disabled={step === 0} onClick={() => setStep(s => s - 1)} className="px-4 py-2.5 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 rounded-lg disabled:opacity-50 text-xs sm:text-sm hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors min-h-[40px]">Previous</button>
+                  <button disabled={step === steps.length - 1} onClick={() => setStep(s => s + 1)} className="px-4 py-2.5 bg-[#4338CA] text-white rounded-lg disabled:opacity-50 text-xs sm:text-sm hover:bg-[#3730A3] transition-colors min-h-[40px]">Next</button>
                 </div>
               </div>
             ) : (
@@ -234,23 +231,23 @@ export default function FindNorthPage() {
               </div>
             )}
 
-            <div className="flex flex-wrap gap-6 items-center mt-4">
-              <label className="flex flex-col gap-1 text-sm font-medium text-stone-700 dark:text-stone-300">
+            <div className="flex flex-wrap gap-4 sm:gap-6 items-center mt-2 sm:mt-4">
+              <label className="flex flex-col gap-1 text-xs sm:text-sm font-medium text-stone-700 dark:text-stone-300">
                 Date
-                <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="border border-stone-300 dark:border-stone-700 rounded px-2.5 py-1 bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-100" />
+                <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="border border-stone-300 dark:border-stone-700 rounded-lg px-2.5 py-1.5 bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-sm min-h-[38px]" />
               </label>
               
-              <label className="flex flex-col gap-1 text-sm font-medium text-stone-700 dark:text-stone-300">
+              <label className="flex flex-col gap-1 text-xs sm:text-sm font-medium text-stone-700 dark:text-stone-300">
                 Latitude (°)
-                <input type="number" value={lat} onChange={(e) => setLat(Number(e.target.value))} className="border border-stone-300 dark:border-stone-700 rounded px-2.5 py-1 w-24 bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-100" step="0.1" />
+                <input type="number" value={lat} onChange={(e) => setLat(Number(e.target.value))} className="border border-stone-300 dark:border-stone-700 rounded-lg px-2.5 py-1.5 w-24 bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-sm min-h-[38px]" step="0.1" />
               </label>
               
-              <label className="flex flex-col gap-1 text-sm font-medium text-stone-700 dark:text-stone-300">
+              <label className="flex flex-col gap-1 text-xs sm:text-sm font-medium text-stone-700 dark:text-stone-300">
                 Circle Radius (aṅgulas)
-                <input type="range" min="20" max="60" value={circleRadius} onChange={(e) => setCircleRadius(Number(e.target.value))} className="w-32 accent-indigo-600" />
+                <input type="range" min="20" max="60" value={circleRadius} onChange={(e) => setCircleRadius(Number(e.target.value))} className="w-32 accent-indigo-600 h-2.5" />
               </label>
             </div>
-          </div>
+            </div>
         </div>
         
         <div className="w-full lg:w-72 bg-white dark:bg-[#141210] rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm p-6 flex flex-col gap-6">

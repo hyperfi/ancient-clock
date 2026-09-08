@@ -519,34 +519,39 @@ export default function PredictEclipsePage() {
                 />
 
                 {/* Contact Point Detent Ticks */}
-                <div className="relative w-full flex justify-between text-[10px] font-mono text-stone-500 dark:text-stone-400 mt-2 px-1">
+                <div className="relative w-full flex justify-between text-[11px] sm:text-xs font-mono text-stone-500 dark:text-stone-400 mt-2 px-1">
                   <span className="text-left">
-                    -2h (C1 - 30m)
+                    <span className="sm:hidden">-2h</span>
+                    <span className="hidden sm:inline">-2h (C1 - 30m)</span>
                   </span>
                   <span className="text-center">
-                    C1 Ingress (~0.20)
+                    <span className="sm:hidden">C1</span>
+                    <span className="hidden sm:inline">C1 Ingress (~0.20)</span>
                   </span>
                   <span className="text-center font-semibold text-amber-600 dark:text-amber-400">
-                    ▲ Greatest Peak (0.50)
+                    <span className="sm:hidden">▲ Peak</span>
+                    <span className="hidden sm:inline">▲ Greatest Peak (0.50)</span>
                   </span>
                   <span className="text-center">
-                    C4 Egress (~0.80)
+                    <span className="sm:hidden">C4</span>
+                    <span className="hidden sm:inline">C4 Egress (~0.80)</span>
                   </span>
                   <span className="text-right">
-                    +2h (C4 + 30m)
+                    <span className="sm:hidden">+2h</span>
+                    <span className="hidden sm:inline">+2h (C4 + 30m)</span>
                   </span>
                 </div>
               </div>
             </div>
 
             {/* Playback Controls & Direct Contact Jump Buttons */}
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 pt-2">
               {/* Play / Pause and Speed Controls */}
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setIsPlaying(!isPlaying)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+                  className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all min-h-[40px] ${
                     isPlaying
                       ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-sm'
                       : 'bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-white dark:text-stone-900 shadow-sm'
@@ -566,7 +571,7 @@ export default function PredictEclipsePage() {
                       key={s.label}
                       type="button"
                       onClick={() => setPlaySpeed(s.val)}
-                      className={`px-2.5 py-1 rounded-md transition-colors ${
+                      className={`px-2.5 py-1.5 rounded-md transition-colors min-h-[34px] ${
                         playSpeed === s.val
                           ? 'bg-white dark:bg-stone-900 shadow-sm text-charcoal dark:text-stone-100 font-semibold'
                           : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
@@ -580,41 +585,41 @@ export default function PredictEclipsePage() {
 
               {/* Direct Jump to Classical Contact Stages */}
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[11px] text-stone-500 dark:text-stone-400 font-medium mr-1">
-                  Jump to Stage:
+                <span className="text-xs text-stone-500 dark:text-stone-400 font-medium mr-1">
+                  Jump to:
                 </span>
                 <button
                   type="button"
                   onClick={() => handleJumpToContact('c1')}
-                  className="px-2.5 py-1 rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-[11px] font-mono text-stone-700 dark:text-stone-300 transition-colors"
+                  className="px-2.5 sm:px-3 py-1.5 rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-xs font-mono text-stone-700 dark:text-stone-300 transition-colors min-h-[36px]"
                 >
                   C1 (Sparśa)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleJumpToContact('c2')}
-                  className="px-2.5 py-1 rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-[11px] font-mono text-stone-700 dark:text-stone-300 transition-colors"
+                  className="px-2.5 sm:px-3 py-1.5 rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-xs font-mono text-stone-700 dark:text-stone-300 transition-colors min-h-[36px]"
                 >
                   C2 (Nimīlana)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleJumpToContact('max')}
-                  className="px-2.5 py-1 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900 text-[11px] font-mono font-semibold text-amber-900 dark:text-amber-200 transition-colors"
+                  className="px-2.5 sm:px-3 py-1.5 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900 text-xs font-mono font-semibold text-amber-900 dark:text-amber-200 transition-colors min-h-[36px]"
                 >
                   Max (Madhya)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleJumpToContact('c3')}
-                  className="px-2.5 py-1 rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-[11px] font-mono text-stone-700 dark:text-stone-300 transition-colors"
+                  className="px-2.5 sm:px-3 py-1.5 rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-xs font-mono text-stone-700 dark:text-stone-300 transition-colors min-h-[36px]"
                 >
                   C3 (Unmīlana)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleJumpToContact('c4')}
-                  className="px-2.5 py-1 rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-[11px] font-mono text-stone-700 dark:text-stone-300 transition-colors"
+                  className="px-2.5 sm:px-3 py-1.5 rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-xs font-mono text-stone-700 dark:text-stone-300 transition-colors min-h-[36px]"
                 >
                   C4 (Mokṣa)
                 </button>

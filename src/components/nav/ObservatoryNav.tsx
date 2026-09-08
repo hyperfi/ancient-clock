@@ -37,7 +37,10 @@ export function ObservatoryNav() {
           <div className="hidden md:flex items-center space-x-6">
             <div className="flex items-baseline space-x-5">
               {links.map((link) => {
-                const isActive = pathname === link.href;
+                const isActive =
+                  link.href === '/observe'
+                    ? pathname === '/observe' || pathname === '/observe/'
+                    : pathname.startsWith(link.href);
                 return (
                   <Link
                     key={link.href}
@@ -65,11 +68,11 @@ export function ObservatoryNav() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 md:hidden">
+          <div className="flex items-center gap-1.5 md:hidden">
             <ThemeToggle />
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-[#1C1917] dark:text-white hover:bg-[#1C1917]/5 dark:hover:bg-white/10 focus:outline-none"
+              className="inline-flex items-center justify-center p-2.5 rounded-lg text-[#1C1917] dark:text-white hover:bg-[#1C1917]/5 dark:hover:bg-white/10 focus:outline-none min-h-[44px] min-w-[44px]"
               aria-label="Toggle navigation menu"
             >
               <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -92,15 +95,18 @@ export function ObservatoryNav() {
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden bg-[#FEFDF5] dark:bg-[#141210] border-b border-[#1C1917]/10 dark:border-white/10"
           >
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            <div className="px-3 pt-2 pb-3 space-y-1 sm:px-4">
               {links.map((link) => {
-                const isActive = pathname === link.href;
+                const isActive =
+                  link.href === '/observe'
+                    ? pathname === '/observe' || pathname === '/observe/'
+                    : pathname.startsWith(link.href);
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
                     onClick={() => setIsOpen(false)}
-                    className={`block px-3 py-2 rounded-md text-base font-medium ${
+                    className={`block px-3.5 py-3 rounded-lg text-base font-medium min-h-[48px] flex items-center transition-colors ${
                       isActive
                         ? 'bg-[#4338CA]/10 dark:bg-[#818CF8]/20 text-[#4338CA] dark:text-[#818CF8]'
                         : 'text-[#1C1917]/70 dark:text-stone-300 hover:bg-[#1C1917]/5 dark:hover:bg-white/5 hover:text-[#1C1917] dark:hover:text-white'

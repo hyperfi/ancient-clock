@@ -131,7 +131,7 @@ export default function ObservePage() {
 
             {/* Central Earth (Bhū) */}
             <circle cx="100" cy="60" r="10" fill="#2563EB" stroke="#60A5FA" strokeWidth="1" />
-            <text x="100" y="63" fontSize="6" fill="#FFFFFF" textAnchor="middle" fontWeight="bold">Bhū</text>
+            <text x="100" y="63" fontSize="8" fill="#FFFFFF" textAnchor="middle" fontWeight="bold">Bhū</text>
 
             {/* Moon revolving around Earth centered at (100, 60) */}
             <g>
@@ -150,7 +150,7 @@ export default function ObservePage() {
             {/* Sun direction rays */}
             <line x1="165" y1="60" x2="190" y2="60" stroke="#D97706" strokeWidth="1.5" strokeDasharray="2 2" />
             <circle cx="192" cy="60" r="4" fill="#D97706" />
-            <text x="178" y="52" fontSize="7" fill="#D97706" textAnchor="middle" fontWeight="bold">Sūrya</text>
+            <text x="178" y="52" fontSize="8.5" fill="#D97706" textAnchor="middle" fontWeight="bold">Sūrya</text>
           </svg>
         </div>
       ),
@@ -293,7 +293,7 @@ export default function ObservePage() {
               </p>
             </div>
             
-            <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800/80 flex items-center justify-between text-[11px] text-stone-400">
+            <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800/80 flex items-center justify-between text-xs text-stone-400">
               <span>Interactive Simulation</span>
               <span className="text-indigo-600 dark:text-indigo-400 font-medium">Launch Lab</span>
             </div>

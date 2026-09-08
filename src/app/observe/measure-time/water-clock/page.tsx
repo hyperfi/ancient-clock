@@ -126,10 +126,10 @@ export default function WaterClockPage() {
   const vinadisElapsed = (fillRatio * 60);
 
   return (
-    <div className="min-h-screen bg-[#FEFDF5] dark:bg-[#0C0A09] text-[#1C1917] dark:text-[#F5F5F4] flex flex-col md:flex-row overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-[#FEFDF5] dark:bg-[#0C0A09] text-[#1C1917] dark:text-[#F5F5F4] flex flex-col md:flex-row overflow-x-hidden md:overflow-hidden transition-colors duration-300">
       
       {/* Left / Main: The Simulation Canvas */}
-      <div className="w-full md:w-3/5 h-[58vh] md:h-screen relative flex flex-col justify-between p-3 md:p-6 border-b md:border-b-0 md:border-r border-stone-200 dark:border-stone-800">
+      <div className="w-full md:w-3/5 min-h-[480px] md:h-screen relative flex flex-col justify-between p-3 sm:p-4 md:p-6 border-b md:border-b-0 md:border-r border-stone-200 dark:border-stone-800">
         
         {/* Top Header & Breadcrumb & View Mode Switcher */}
         <div className="z-10 flex flex-col gap-1.5">
@@ -340,11 +340,11 @@ export default function WaterClockPage() {
           <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-stone-100 dark:border-stone-800">
             
             {/* Play, Reset & Jump Buttons */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => setIsPlaying(!isPlaying)}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5 ${
+                className={`px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-xs flex items-center gap-1.5 min-h-[42px] ${
                   isPlaying 
                     ? 'bg-amber-600 hover:bg-amber-700 text-white' 
                     : 'bg-indigo-600 hover:bg-indigo-700 text-white'
@@ -356,7 +356,7 @@ export default function WaterClockPage() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="px-3 py-1.5 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 rounded-lg text-xs font-medium hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors border border-stone-200 dark:border-stone-700"
+                className="px-3.5 py-2.5 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 rounded-lg text-xs sm:text-sm font-medium hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors border border-stone-200 dark:border-stone-700 min-h-[42px]"
               >
                 Reset
               </button>
@@ -364,7 +364,7 @@ export default function WaterClockPage() {
               <button
                 type="button"
                 onClick={handleJumpToNearSink}
-                className="px-2.5 py-1.5 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 rounded-lg text-xs font-medium hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-colors border border-rose-200 dark:border-rose-800 flex items-center gap-1"
+                className="px-3 py-2.5 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 rounded-lg text-xs font-medium hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-colors border border-rose-200 dark:border-rose-800 flex items-center gap-1 min-h-[42px]"
                 title="Jump directly to 15 seconds before the bowl sinks to test the sinking physics"
               >
                 <span>⏩</span>
@@ -374,7 +374,7 @@ export default function WaterClockPage() {
               <button
                 type="button"
                 onClick={() => playGhatikaChime(0.7)}
-                className="px-2 py-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-medium hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-colors border border-amber-200 dark:border-amber-800"
+                className="px-3 py-2.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-medium hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-colors border border-amber-200 dark:border-amber-800 min-h-[42px]"
                 title="Play test temple bell chime"
               >
                 🔔 Bell
@@ -383,20 +383,20 @@ export default function WaterClockPage() {
 
             {/* Speed Multiplier */}
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] text-stone-400 uppercase font-semibold">Speed:</span>
+              <span className="text-xs text-stone-400 uppercase font-semibold">Speed:</span>
               <div className="flex rounded-md overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 p-0.5">
                 {[1, 10, 60, 120, 300].map(s => (
                   <button
                     type="button"
                     key={s}
                     onClick={() => setSpeed(s)}
-                    className={`px-2 py-1 text-[11px] font-mono font-semibold rounded transition-colors ${
+                    className={`px-2.5 py-1.5 text-xs font-mono font-semibold rounded transition-colors min-h-[36px] ${
                       speed === s
                         ? 'bg-white dark:bg-stone-900 text-indigo-600 dark:text-indigo-400 shadow-xs'
                         : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
                     }`}
                   >
-                    {s === 1 ? '1x' : s === 60 ? '60x (1m/s)' : `${s}x`}
+                    {s === 1 ? '1x' : s === 60 ? '60x' : `${s}x`}
                   </button>
                 ))}
               </div>
@@ -420,10 +420,10 @@ export default function WaterClockPage() {
       </div>
 
       {/* Right: Control, Calibration & Metrology Panel */}
-      <div className="w-full md:w-2/5 bg-white dark:bg-[#141210] flex flex-col h-[42vh] md:h-screen overflow-y-auto">
+      <div className="w-full md:w-2/5 bg-white dark:bg-[#141210] flex flex-col md:h-screen overflow-y-auto">
         
         {/* Navigation Tabs */}
-        <div className="flex border-b border-stone-200 dark:border-stone-800 px-4 pt-3 sticky top-0 bg-white dark:bg-[#141210] z-20">
+        <div className="flex overflow-x-auto scrollbar-none whitespace-nowrap border-b border-stone-200 dark:border-stone-800 px-4 pt-2 sm:pt-3 sticky top-0 bg-white dark:bg-[#141210] z-20">
           {[
             { id: 'historical', label: 'Classical Specs' },
             { id: 'calibrate', label: 'Calibration Lab' },
