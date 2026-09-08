@@ -116,6 +116,19 @@ export default function Home() {
           </Link>
         </div>
       </div>
+
+      {/* Author Credit */}
+      <div className="absolute bottom-4 z-30 text-xs text-stone-500 dark:text-stone-400">
+        Created by{' '}
+        <a
+          href="https://www.dr-abhishek.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-stone-700 dark:text-stone-300 hover:text-[#4338CA] dark:hover:text-[#818CF8] underline underline-offset-2 transition-colors"
+        >
+          Dr. Abhishek
+        </a>
+      </div>
     </main>
   );
 }

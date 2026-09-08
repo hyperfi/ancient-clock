@@ -15,6 +15,8 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
 export const metadata: Metadata = {
   title: "Ghaṭikā — Ancient Indian Time & Astronomy Lab",
   description: "An interactive laboratory for ancient Indian timekeeping and astronomy.",
+  authors: [{ name: "Dr. Abhishek", url: "https://www.dr-abhishek.com" }],
+  creator: "Dr. Abhishek",
 };
 
 const themeScript = `

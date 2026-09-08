@@ -337,12 +337,20 @@ export default function SourcesPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="mt-16 pt-8 border-t border-stone-200 dark:border-stone-800 text-center">
-        <p className="text-stone-400 dark:text-stone-500 text-xs">
-          Ghaṭikā — Ancient Indian Time & Astronomy Lab
+      {/* Footer Note */}
+      <footer className="mt-16 pt-8 border-t border-stone-200 dark:border-stone-800 text-center space-y-1.5 pb-8">
+        <p className="text-stone-500 dark:text-stone-400 text-xs">
+          Designed and developed by{' '}
+          <a
+            href="https://www.dr-abhishek.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-stone-700 dark:text-stone-300 hover:text-indigo-600 dark:hover:text-indigo-400 underline underline-offset-2 transition-colors"
+          >
+            Dr. Abhishek (www.dr-abhishek.com)
+          </a>
         </p>
-        <p className="text-stone-400 dark:text-stone-500 text-xs mt-1">
+        <p className="text-stone-400 dark:text-stone-500 text-xs">
           This project treats its material strictly as the history of quantitative science.
         </p>
       </footer>
